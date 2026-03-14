@@ -501,6 +501,9 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
     </div>
     <div class="header-sub">POKÉMON EMERALD</div>
     <div class="header-version">HOENN REGION</div>
+    <div style="margin-top:8px">
+      <button onclick="location.reload()" style="-webkit-appearance:none;appearance:none;background:transparent;border:1px solid #1a4028;border-radius:3px;color:#4a6a54;font-family:'Courier New',Courier,monospace;font-size:10px;padding:4px 12px;cursor:pointer;letter-spacing:1px;">↺ REFRESH</button>
+    </div>
   </div>
 
   <div class="divider"></div>
@@ -1014,7 +1017,8 @@ function buildMemberCard(p, i) {
       <div class="move-row">
         <div class="move-dot" style="background:${dotColor}"></div>
         <input class="move-input" value="${m}" placeholder="Move name"
-          onchange="updateMove(${i},${mi},this.value)"
+          oninput="updateMove(${i},${mi},this.value)"
+          onblur="updateMove(${i},${mi},this.value)"
           autocorrect="off" autocapitalize="words" spellcheck="false"/>
         <button class="move-remove" onclick="removeMove(${i},${mi})">✕</button>
       </div>
@@ -1095,6 +1099,7 @@ function confirmSwap(i) {
     moves: ["—"], color: TC[pv.types[0]] || "#888",
   };
   editorState[i] = { open:true, swapInput:"", swapPreview:null, swapError:"", swapLoading:false, evoChain:null, evoLoading:false };
+  saveTeam();
   renderTeamEditor();
 }
 
@@ -1135,21 +1140,53 @@ async function evolveSlot(slotIdx, evoIdx) {
     team[slotIdx].types = newTypes;
     team[slotIdx].color = TC[newTypes[0]] || '#888';
   } catch {}
+  saveTeam();
   renderTeamEditor();
 }
 
 // Moves
 function updateMove(slotIdx, moveIdx, val) {
-  team[slotIdx].moves[moveIdx] = val.trim() || '—';
-  renderTeamEditor();
+  team[slotIdx].moves[moveIdx] = val || '—';
+  const card = document.getElementById('mc-'+slotIdx);
+  if (card) {
+    const dots = card.querySelectorAll('.move-dot');
+    if (dots[moveIdx]) {
+      const mt = MOVE_TYPES[val.toLowerCase()];
+      dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
+    }
+  }
+  saveTeam();
 }
 function removeMove(slotIdx, moveIdx) {
   team[slotIdx].moves.splice(moveIdx, 1);
+  saveTeam();
   renderTeamEditor();
 }
+
+// ─── PERSISTENCE ─────────────────────────────────────────────
+function saveTeam() {
+  try { localStorage.setItem('emerald_team', JSON.stringify(team)); } catch(e) {}
+}
+function loadTeam() {
+  try {
+    const saved = localStorage.getItem('emerald_team');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length === 6) {
+        team = parsed;
+        editorState = team.map(() => ({
+          open:false, swapInput:'', swapPreview:null, swapError:'',
+          swapLoading:false, evoChain:null, evoLoading:false,
+        }));
+      }
+    }
+  } catch(e) {}
+}
+loadTeam();
 function addMove(slotIdx) {
   if (team[slotIdx].moves.length < 4) {
     team[slotIdx].moves.push('');
+    saveTeam();
     renderTeamEditor();
     setTimeout(() => {
       const card = document.getElementById(`mc-${slotIdx}`);
