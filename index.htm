@@ -665,7 +665,7 @@ function getEff(at, defTypes) {
 }
 function getAttackTypes(moves) {
   const s = new Set();
-  moves.forEach(m => { const t = MOVE_TYPES[m.toLowerCase()]; if (t && t !== "—") s.add(t); });
+  moves.forEach(m => { const t = MOVE_TYPES[m.trim().toLowerCase()]; if (t && t !== "—") s.add(t); });
   return [...s];
 }
 function getBestMult(moves, defTypes) {
@@ -1017,8 +1017,9 @@ function buildMemberCard(p, i) {
       <div class="move-row">
         <div class="move-dot" style="background:${dotColor}"></div>
         <input class="move-input" value="${m}" placeholder="Move name"
-          oninput="updateMove(${i},${mi},this.value)"
-          onblur="updateMove(${i},${mi},this.value)"
+          oninput="previewMoveDot(${i},${mi},this.value)"
+          onblur="finalizeMove(${i},${mi},this.value)"
+          onkeydown="if(event.key==='Enter'){this.blur();}"
           autocorrect="off" autocapitalize="words" spellcheck="false"/>
         <button class="move-remove" onclick="removeMove(${i},${mi})">✕</button>
       </div>
@@ -1145,17 +1146,25 @@ async function evolveSlot(slotIdx, evoIdx) {
 }
 
 // Moves
-function updateMove(slotIdx, moveIdx, val) {
-  team[slotIdx].moves[moveIdx] = val || '—';
+function previewMoveDot(slotIdx, moveIdx, val) {
+  // Just update the dot color while typing - don't save yet
   const card = document.getElementById('mc-'+slotIdx);
   if (card) {
     const dots = card.querySelectorAll('.move-dot');
     if (dots[moveIdx]) {
-      const mt = MOVE_TYPES[val.toLowerCase()];
+      const mt = MOVE_TYPES[val.trim().toLowerCase()];
       dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
     }
   }
+}
+function finalizeMove(slotIdx, moveIdx, val) {
+  // Save the completed move name when done typing
+  const trimmed = val.trim();
+  team[slotIdx].moves[moveIdx] = trimmed || '—';
   saveTeam();
+}
+function updateMove(slotIdx, moveIdx, val) {
+  finalizeMove(slotIdx, moveIdx, val);
 }
 function removeMove(slotIdx, moveIdx) {
   team[slotIdx].moves.splice(moveIdx, 1);
