@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Move API Debug</title>
+<style>
+body { background: #111; color: #eee; font-family: monospace; padding: 20px; font-size: 14px; }
+.result { padding: 6px; margin: 4px 0; border-radius: 4px; }
+.ok { background: #1a3a1a; color: #4cff72; }
+.fail { background: #3a1a1a; color: #ff6666; }
+.pending { background: #1a1a3a; color: #aaaaff; }
+</style>
+</head>
+<body>
+<h2 style="color:#f0c040">Move API Debug</h2>
+<div id="out"></div>
+<script>
+const moves = [
+  "Thundershock", "Scratch", "Peck", "Growl", "Leer",
+  "Ember", "Absorb", "Quick Attack", "Pound", "Fury Attack",
+  "Thunder Wave", "Charm", "Sweet Kiss", "Smokescreen", "Harden"
+];
+
+const out = document.getElementById(‘out’);
+
+async function testMove(name) {
+const div = document.createElement(‘div’);
+div.className = ‘result pending’;
+div.textContent = `Testing: ${name} ...`;
+out.appendChild(div);
+
+const slug = name.trim().toLowerCase().replace(/ /g, ‘-’);
+const url = ‘https://pokeapi.co/api/v2/move/’ + slug;
+
+try {
+const res = await fetch(url);
+if (res.ok) {
+const data = await res.json();
+div.className = ‘result ok’;
+div.textContent = `✓ ${name} → slug: "${slug}" → type: ${data.type.name}`;
+} else {
+div.className = ‘result fail’;
+div.textContent = `✗ ${name} → slug: "${slug}" → HTTP ${res.status} (slug wrong)`;
+}
+} catch(e) {
+div.className = ‘result fail’;
+div.textContent = `✗ ${name} → NETWORK ERROR: ${e.message}`;
+}
+}
+
+(async () => {
+for (const m of moves) {
+await testMove(m);
+}
+})();
+</script>
+
+</body>
+</html>
