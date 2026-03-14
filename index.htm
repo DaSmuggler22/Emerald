@@ -2080,12 +2080,22 @@ async function preCacheAllMoves() {
     // Check if already fully cached
     const cacheVersion = localStorage.getItem('emerald_full_cache_version');
     if (cacheVersion === '1') {
-      setStatus('LOADING MOVE CACHE...');
       const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
-      Object.assign(moveTypeCache, cached);
-      updateAllMoveDots();
-      setTimeout(hideStatus, 1000);
-      return;
+      const cachedCount = Object.keys(cached).length;
+      // Only trust cache if it has a reasonable number of moves
+      if (cachedCount > 200) {
+        setStatus('✓ MOVE CACHE LOADED (' + cachedCount + ' MOVES)');
+        Object.assign(moveTypeCache, cached);
+        updateAllMoveDots();
+        setTimeout(hideStatus, 2000);
+        return;
+      }
+      // Cache incomplete - clear and re-fetch
+      localStorage.removeItem('emerald_move_cache');
+      localStorage.removeItem('emerald_full_cache_version');
+      setStatus('CACHE INCOMPLETE (' + cachedCount + ') - REBUILDING...');
+    } else {
+      setStatus('STARTING MOVE CACHE BUILD...');
     }
 
     // Fetch all move names first
