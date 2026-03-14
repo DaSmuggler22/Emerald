@@ -1375,7 +1375,16 @@ function updateAllMoveDots() {
       const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
       if (dot) {
         const mt = getMoveType(m);
-        dot.style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.1)';
+        if (!mt) {
+          dot.style.background = 'transparent';
+          dot.style.border = '1px dashed rgba(255,255,255,0.2)';
+        } else if (mt === '—') {
+          dot.style.background = 'rgba(255,255,255,0.12)';
+          dot.style.border = '1px solid rgba(255,255,255,0.2)';
+        } else {
+          dot.style.background = TC[mt] || '#888';
+          dot.style.border = '1px solid rgba(255,255,255,0.1)';
+        }
       }
     });
   });
@@ -1538,26 +1547,37 @@ function renderBattle(enemy) {
     const isTop = i === 0 && p.offMult > 0;
     const r = getRating(p.offMult);
     const takesSuper = p.defMult >= 2;
-    // Sort damage moves by effectiveness against the enemy, best first
-    const dmgMoves = p.moves
-      .filter(m => { const t = getMoveType(m); return t && t !== '—'; })
+    // Sort ALL moves: damage moves by effectiveness first, status moves at bottom
+    const allMovesRated = p.moves
+      .filter(m => m && m !== '—')
       .map(m => {
         const t = getMoveType(m);
-        const eff = t ? getEff(t, enemy.types) : 0;
-        return { name: m, eff, type: t };
+        const isDamage = t && t !== '—' && t !== null;
+        const eff = isDamage ? getEff(t, enemy.types) : -1;
+        return { name: m, eff, type: t, isDamage };
       })
       .sort((a, b) => b.eff - a.eff);
 
     // Build move list with per-move effectiveness indicator
-    const moveDisplay = dmgMoves.map(mv => {
+    const moveDisplay = allMovesRated.map(mv => {
       let indicator = '';
-      if (mv.eff >= 4)       indicator = '<span style="color:#ff4444;font-size:11px">4×</span> ';
+      if (!mv.isDamage) {
+        indicator = '<span style="color:#4a6a54;font-size:10px">STATUS</span> ';
+      } else if (mv.eff >= 4)       indicator = '<span style="color:#ff4444;font-size:11px">4×</span> ';
       else if (mv.eff >= 2)  indicator = '<span style="color:#4cff72;font-size:11px">2×</span> ';
       else if (mv.eff > 0 && mv.eff < 1) indicator = '<span style="color:#ff9900;font-size:11px">½×</span> ';
       else if (mv.eff === 0) indicator = '<span style="color:#555;font-size:11px">0×</span> ';
-      const dotColor = mv.type ? (TC[mv.type] || '#555') : '#555';
-      return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0">
-        <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+      // Dot color: typed moves get type color, status get faint, unknown get dashed
+      let dotStyle;
+      if (!mv.type) {
+        dotStyle = 'background:transparent;border:1px dashed rgba(255,255,255,0.2)';
+      } else if (!mv.isDamage) {
+        dotStyle = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2)';
+      } else {
+        dotStyle = 'background:' + (TC[mv.type] || '#888');
+      }
+      return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;opacity:${mv.isDamage?'1':'0.6'}">
+        <div style="width:7px;height:7px;border-radius:50%;flex-shrink:0;${dotStyle}"></div>
         <span>${indicator}${mv.name}</span>
       </div>`;
     }).join('');
@@ -1578,8 +1598,7 @@ function renderBattle(enemy) {
             </span>
             ${takesSuper ? `<span class="r-danger">⚠ takes ${p.defMult}× dmg</span>` : ''}
           </div>
-          ${dmgMoves.length && p.offMult>0 ? `<div class="r-moves" style="margin-top:5px">${moveDisplay}</div>` : ''}
-          ${!getAttackTypes(p.moves, p.types).length ? `<div class="r-moves" style="color:#555">NO DAMAGE MOVES</div>` : ''}
+          ${allMovesRated.length ? `<div class="r-moves" style="margin-top:5px">${moveDisplay}</div>` : ''}
         </div>
       </div>
     `;
@@ -1786,10 +1805,18 @@ function buildMemberCard(p, i) {
   // Moves
   const movesHtml = p.moves.map((m, mi) => {
     const mt = getMoveType(m);
-    const dotColor = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
+    // Status moves: dim dot with border. Damage moves: solid colored dot. Unknown: dashed border
+    let dotStyle;
+    if (!mt) {
+      dotStyle = 'background:transparent;border:1px dashed rgba(255,255,255,0.2)'; // unknown
+    } else if (mt === '—') {
+      dotStyle = 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2)'; // status
+    } else {
+      dotStyle = 'background:' + (TC[mt]||'#888'); // damage move - solid type color
+    }
     return `
       <div class="move-row">
-        <div class="move-dot" id="dot-${i}-${mi}" style="background:${dotColor}"></div>
+        <div class="move-dot" id="dot-${i}-${mi}" style="${dotStyle}"></div>
         <div class="move-wrap">
           <input class="move-input" value="${m}" placeholder="Move name"
             id="move-input-${i}-${mi}"
@@ -1975,7 +2002,16 @@ function finalizeMove(slotIdx, moveIdx, val) {
   // Update dot color immediately
   const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
   if (dot) {
-    dot.style.background = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
+    if (!mt) {
+      dot.style.background = 'transparent';
+      dot.style.border = '1px dashed rgba(255,255,255,0.2)';
+    } else if (mt === '—') {
+      dot.style.background = 'rgba(255,255,255,0.12)';
+      dot.style.border = '1px solid rgba(255,255,255,0.2)';
+    } else {
+      dot.style.background = TC[mt] || '#888';
+      dot.style.border = '1px solid rgba(255,255,255,0.1)';
+    }
   }
   // If not in hardcoded dict, fall back to API fetch
   if (!mt) {
