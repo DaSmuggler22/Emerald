@@ -794,12 +794,13 @@ const MOVE_ALIASES = {
 
 // Dynamic move type cache - fetched from PokeAPI
 const moveTypeCache = {};
-const MOVE_CACHE_VERSION = '2'; // bump this to invalidate old cache
+const MOVE_CACHE_VERSION = '3';
 (function() {
   try {
     const v = localStorage.getItem('emerald_move_cache_version');
     if (v !== MOVE_CACHE_VERSION) {
       localStorage.removeItem('emerald_move_cache');
+      localStorage.removeItem('emerald_full_cache_version');
       localStorage.setItem('emerald_move_cache_version', MOVE_CACHE_VERSION);
     }
   } catch(e) {}
@@ -1329,6 +1330,7 @@ async function loadSavedTeam() {
 }
 
 function updateAllMoveDots() {
+  // Update dots in My Team editor
   team.forEach((p, slotIdx) => {
     const card = document.getElementById('mc-' + slotIdx);
     if (!card) return;
@@ -1339,6 +1341,14 @@ function updateAllMoveDots() {
         dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.1)';
       }
     });
+  });
+  // Also update move dots in battle results if visible
+  document.querySelectorAll('.move-sug-dot').forEach(dot => {
+    const name = dot.parentElement?.querySelector('span')?.textContent?.trim().toLowerCase().replace(/ /g,'-');
+    if (name && moveTypeCache[name]) {
+      const mt = moveTypeCache[name];
+      dot.style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.15)';
+    }
   });
 }
 
@@ -2054,15 +2064,62 @@ function onMoveKeydown(event, slotIdx, moveIdx) {
   }
 }
 
-// Cache the full move list for faster autocomplete on repeat searches
+// Full move list cache for autocomplete
 let allMovesCache = null;
-async function warmMoveListCache() {
+
+// Pre-fetch ALL move types for Gen 1-4 (moves 1-467) on first load
+// Fetches in small batches to avoid hammering the API
+async function preCacheAllMoves() {
   try {
-    const res = await fetch('https://pokeapi.co/api/v2/move?limit=1000');
-    if (res.ok) { const d = await res.json(); allMovesCache = d.results; }
+    // Check if already fully cached
+    const cacheVersion = localStorage.getItem('emerald_full_cache_version');
+    if (cacheVersion === '1') {
+      // Already fully cached - just load it
+      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
+      Object.assign(moveTypeCache, cached);
+      updateAllMoveDots();
+      return;
+    }
+
+    // Fetch all move names first
+    const listRes = await fetch('https://pokeapi.co/api/v2/move?limit=500&offset=0');
+    if (!listRes.ok) return;
+    const listData = await listRes.json();
+    allMovesCache = listData.results;
+
+    // Fetch types for all moves in parallel batches of 20
+    const moves = listData.results;
+    const batchSize = 20;
+    for (let i = 0; i < moves.length; i += batchSize) {
+      const batch = moves.slice(i, i + batchSize);
+      await Promise.all(batch.map(async m => {
+        if (moveTypeCache[m.name]) return; // already cached
+        try {
+          const r = await fetch(`https://pokeapi.co/api/v2/move/${m.name}`);
+          if (!r.ok) return;
+          const d = await r.json();
+          const type = (d.power && d.power > 0) ? d.type.name : '—';
+          moveTypeCache[m.name] = type;
+        } catch(e) {}
+      }));
+      // Small delay between batches to be respectful to the API
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    // Save entire cache to localStorage
+    try {
+      localStorage.setItem('emerald_move_cache', JSON.stringify(moveTypeCache));
+      localStorage.setItem('emerald_full_cache_version', '1');
+    } catch(e) {}
+
+    // Update dots now that everything is cached
+    updateAllMoveDots();
+
   } catch(e) {}
 }
-setTimeout(warmMoveListCache, 2000);
+
+// Start pre-caching after a short delay so page loads first
+setTimeout(preCacheAllMoves, 1500);
 
 function saveTeam() {
   try {
