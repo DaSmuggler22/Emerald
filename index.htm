@@ -684,27 +684,72 @@ const moveTypeCache = {};
 
 async function fetchMoveType(moveName) {
   const normalized = moveName.trim().toLowerCase();
-  const key = normalized.replace(/ /g, '-');
-  if (moveTypeCache[key] || moveTypeCache[normalized]) return moveTypeCache[key] || moveTypeCache[normalized];
+  const dashKey = normalized.replace(/ /g, '-');
+
+  // Check caches first
+  if (moveTypeCache[dashKey]) return moveTypeCache[dashKey];
+  if (moveTypeCache[normalized]) return moveTypeCache[normalized];
   if (MOVE_TYPES[normalized] !== undefined) return MOVE_TYPES[normalized];
-  // Use alias if available
-  const apiKey = MOVE_ALIASES[normalized] || key;
-  try {
-    const res = await fetch('https://pokeapi.co/api/v2/move/' + apiKey);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const type = data.type.name;
-    moveTypeCache[key] = type;
-    // Also save to localStorage cache
-    try {
-      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
-      cached[key] = type;
-      localStorage.setItem('emerald_move_cache', JSON.stringify(cached));
-    } catch(e) {}
-    return type;
-  } catch(e) {
-    return null;
+  if (MOVE_TYPES[dashKey] !== undefined) return MOVE_TYPES[dashKey];
+
+  // Build a list of slugs to try in order
+  const aliasKey = MOVE_ALIASES[normalized];
+  const slugsToTry = [];
+  if (aliasKey) slugsToTry.push(aliasKey);
+  slugsToTry.push(dashKey);
+
+  // Also try inserting a dash between camelCase transitions e.g. "thundershock" -> "thunder-shock"
+  const camelToDash = normalized.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  if (!slugsToTry.includes(camelToDash)) slugsToTry.push(camelToDash);
+
+  // Try splitting on common word boundaries for compound words
+  // e.g. "thundershock" -> "thunder-shock", "quickattack" -> "quick-attack"
+  const compoundWords = [
+    ['thunder','shock'],['quick','attack'],['razor','leaf'],['solar','beam'],
+    ['water','gun'],['hydro','pump'],['ice','beam'],['rock','throw'],
+    ['rock','slide'],['rock','smash'],['vine','whip'],['double','slap'],
+    ['body','slam'],['take','down'],['double','edge'],['wing','attack'],
+    ['drill','peck'],['mach','punch'],['cross','chop'],['giga','drain'],
+    ['mega','drain'],['fury','attack'],['fury','swipes'],['fury','cutter'],
+    ['pin','missile'],['spike','cannon'],['horn','attack'],['horn','drill'],
+    ['hyper','beam'],['hyper','fang'],['fire','spin'],['fire','punch'],
+    ['fire','blast'],['ice','punch'],['thunder','punch'],['skull','bash'],
+    ['steel','wing'],['iron','tail'],['metal','claw'],['shadow','ball'],
+    ['mud','slap'],['sludge','bomb'],['dragon','rage'],['dragon','breath'],
+    ['dragon','claw'],['sky','attack'],['zap','cannon'],['bone','rush'],
+    ['ancient','power'],['mirror','coat'],['future','sight'],['beat','up'],
+    ['fake','out'],['belly','drum'],['baton','pass'],['rapid','spin'],
+    ['false','swipe'],['lock','on'],['mean','look'],['perish','song'],
+    ['destiny','bond'],['pain','split'],['heal','bell'],['mortal','blow'],
+  ];
+  for (const [a, b] of compoundWords) {
+    const joined = a + b;
+    if (normalized === joined || normalized === a+' '+b) {
+      const slug = a + '-' + b;
+      if (!slugsToTry.includes(slug)) slugsToTry.push(slug);
+    }
   }
+
+  // Try each slug until one works
+  for (const slug of slugsToTry) {
+    try {
+      const res = await fetch('https://pokeapi.co/api/v2/move/' + slug);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const type = data.type.name;
+      // Cache under both the original key and the working slug
+      moveTypeCache[dashKey] = type;
+      moveTypeCache[slug] = type;
+      try {
+        const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
+        cached[dashKey] = type;
+        cached[slug] = type;
+        localStorage.setItem('emerald_move_cache', JSON.stringify(cached));
+      } catch(e) {}
+      return type;
+    } catch(e) { continue; }
+  }
+  return null;
 }
 
 function getMoveType(moveName) {
