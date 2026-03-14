@@ -6,7 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<title>Pokémon Emerald — Team Advisor</title>
+<title>Team Advisor</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAACJklEQVR42u3ZsQ2AMAxFwQyRIdhfGYdB0sEC0EXg2Pel1yM4KrcWbL33SzFqBjTQBjTQQAtooAU00EAb0EAb0EADLaBjYz2PQx8EPdBAAw000EALaKAFNNBAAw000EADDTTQAhpWBfwxgBbQQAtooAU00AIaaKCBFtBAC2igVQo0rEqFHmgBLQEtoIEW0EALaKAFtAS0gIZV0AMtoCWgJaAFNNACGmgBLQEtAS2ggRbQQAtoCWgJaAENtIAGWkBLQEtAC2igBTTQAloCWgJaQAMtoIEW0BLQAhpoAQ20gJaAloAW0EALaKAFtAS0BLSABlpAAy2gJaAloAU00AJaL40xQlX5WwANNNACGmiggQYaaKCBBhpooIEGWkADDTTQW4Cec6ZsFehVz7MKdNZvATTQQAMNNNBAAw000EADDTTQQAMNNNBAAw000FuAdil0KXT6BhpooIEGGmiggQYaaKCBBhpooIEGGmiggQYa6OKXQjl9S0BLQAtooAU00AJaAloCWkADLaCBFtAS0BLQAhpoAQ20gJaAloAW0EALaKAFtAS0BLSABlpAAy2gJaAFNNACGmgB7YULaAloAQ20gAZaQEvxQUOvVFiBFtBAC2gBDbSABlpAAy2ggRbQAvpv0NArFVagBTTQQAMtoIEW0EALaKAFNNBAAy2gs6DXXrXKAwBooAU00AIaaAENNNBAC2igBTTQAtrMzMzMzMzMzMzMzMyedwOFcrcqztuN8QAAAABJRU5ErkJggg=="/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="Team Advisor"/>
 <style>
 :root {
   --em-green:    #00a86b;
@@ -220,22 +224,22 @@ background: #0d2018; border: 2px solid #1a4028;
 border-radius: 4px; padding: 4px;
 }
 .tab {
-padding: 8px 4px; text-align: center;
-font-family: ‘Courier New’, Courier, monospace; font-size: 7px;
-letter-spacing: 0.5px; border-radius: 3px; cursor: pointer;
-border: 2px solid transparent; transition: all 0.1s;
-line-height: 1.6; -webkit-tap-highlight-color: transparent;
+padding: 10px 4px; text-align: center;
+font-family: ‘Courier New’, Courier, monospace; font-size: 9px;
+font-weight: bold; letter-spacing: 0.5px; border-radius: 3px; cursor: pointer;
+border: 2px solid transparent; transition: all 0.15s;
+line-height: 1.4; -webkit-tap-highlight-color: transparent;
 }
+.tab .tab-icon { font-size: 18px; display: block; margin-bottom: 3px; line-height: 1; }
+.tab .tab-label { display: block; }
 .tab.active {
-background: #00a86b; color: #060f0a;
-border-color: #f0c040;
-box-shadow: 0 0 10px rgba(0,168,107,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+color: #ffffff;
+box-shadow: 0 0 12px rgba(255,255,255,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 .tab.inactive {
-background: transparent; color: #4a6a54;
-border-color: #1a4028;
+background: rgba(255,255,255,0.05) !important;
 }
-.tab.inactive:active { background: #1a4028; }
+.tab.inactive:active { opacity: 0.8; }
 
 /* ── PANEL ── */
 .panel {
@@ -611,7 +615,7 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
     <div class="header-sub" id="gameTitle">POKÉMON EMERALD</div>
     <div class="header-version" id="gameRegion">HOENN REGION</div>
     <div style="margin-top:8px">
-      <button onclick="location.reload()" style="-webkit-appearance:none;appearance:none;background:transparent;border:1px solid #1a4028;border-radius:3px;color:#4a6a54;font-family:'Courier New',Courier,monospace;font-size:10px;padding:4px 12px;cursor:pointer;letter-spacing:1px;">↺ REFRESH</button>
+      <button id="refresh-btn" onclick="location.reload()" style="-webkit-appearance:none;appearance:none;background:transparent;border:1px solid #1a4028;border-radius:3px;color:#4a6a54;font-family:'Courier New',Courier,monospace;font-size:10px;padding:4px 12px;cursor:pointer;letter-spacing:1px;">↺ REFRESH</button>
     </div>
   </div>
 
@@ -624,9 +628,9 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
   <!-- TABS -->
 
   <div class="tabs">
-    <button class="tab active" id="tab-battle" onclick="switchTab('battle')">⚔<br>BATTLE</button>
-    <button class="tab inactive" id="tab-catch"  onclick="switchTab('catch')">🎣<br>CATCH?</button>
-    <button class="tab inactive" id="tab-team"   onclick="switchTab('team')">✎<br>MY TEAM</button>
+    <button class="tab active" id="tab-battle" onclick="switchTab('battle')"><span class="tab-icon">⚔</span><span class="tab-label">BATTLE</span></button>
+    <button class="tab inactive" id="tab-catch"  onclick="switchTab('catch')"><span class="tab-icon">🎣</span><span class="tab-label">CATCH?</span></button>
+    <button class="tab inactive" id="tab-team"   onclick="switchTab('team')"><span class="tab-icon">✎</span><span class="tab-label">MY TEAM</span></button>
   </div>
 
   <!-- ══════ BATTLE PANE ══════ -->
@@ -1105,10 +1109,19 @@ function applyGameTheme(game) {
     gem.style.filter = `drop-shadow(0 0 6px ${game.gem})`;
   });
 
-  // Update active tab
-  document.querySelectorAll('.tab.active').forEach(t => {
-    t.style.background = game.accent;
-    t.style.borderColor = game.gold;
+  // Update all tabs with correct game colors
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.classList.contains('active')) {
+      t.style.background = game.accent;
+      t.style.borderColor = game.gold;
+      t.style.color = '#ffffff';
+      t.style.opacity = '1';
+    } else {
+      t.style.background = 'rgba(255,255,255,0.05)';
+      t.style.borderColor = game.border;
+      t.style.color = game.white;
+      t.style.opacity = '0.6';
+    }
   });
 
   // Update divider
@@ -1116,8 +1129,50 @@ function applyGameTheme(game) {
     d.style.background = `linear-gradient(90deg, transparent, ${game.accent}, ${game.gold}, ${game.accent}, transparent)`;
   });
 
+  // Update input/button/refresh colors
+  updateUIColors(game);
   // Re-render game selector
   renderGameSelector();
+}
+
+function updateUIColors(game) {
+  // GO buttons
+  document.querySelectorAll('.poke-btn').forEach(el => {
+    el.style.background = game.accent;
+    el.style.borderColor = game.gold;
+    el.style.color = game.bg;
+  });
+  // Gray/secondary buttons (FIND, etc)
+  document.querySelectorAll('.poke-btn-gray').forEach(el => {
+    el.style.background = game.panel2;
+    el.style.borderColor = game.border;
+    el.style.color = game.gray;
+  });
+  // Search inputs
+  document.querySelectorAll('.poke-input').forEach(el => {
+    el.style.background = game.bg;
+    el.style.borderColor = game.border;
+    el.style.color = game.white;
+  });
+  // Refresh button
+  const rb = document.getElementById('refresh-btn');
+  if (rb) {
+    rb.style.borderColor = game.border;
+    rb.style.color = game.gray;
+  }
+  // Panel labels
+  document.querySelectorAll('.panel-label').forEach(el => {
+    el.style.color = game.gold;
+  });
+  // Section labels in editor
+  document.querySelectorAll('.ed-label').forEach(el => {
+    el.style.color = game.gold;
+  });
+  // Panels
+  document.querySelectorAll('.panel').forEach(el => {
+    el.style.background = game.panel;
+    el.style.borderColor = game.border;
+  });
 }
 
 function renderGameSelector() {
@@ -1369,6 +1424,16 @@ function switchTab(tab) {
     document.getElementById(`pane-${t}`).style.display = t===tab ? '' : 'none';
     const el = document.getElementById(`tab-${t}`);
     el.className = 'tab ' + (t===tab ? 'active' : 'inactive');
+    if (t === tab) {
+      el.style.background = currentGame ? currentGame.accent : '#00a86b';
+      el.style.borderColor = currentGame ? currentGame.gold : '#f0c040';
+      el.style.color = '#ffffff';
+    } else {
+      el.style.background = 'rgba(255,255,255,0.05)';
+      el.style.borderColor = currentGame ? currentGame.border : '#1a4028';
+      el.style.color = currentGame ? currentGame.white : '#e8f4ec';
+      el.style.opacity = '0.6';
+    }
   });
   if (tab === 'team') renderTeamEditor();
 }
