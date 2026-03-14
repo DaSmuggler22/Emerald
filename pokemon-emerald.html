@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Pokémon Emerald — Team Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --em-green:    #00a86b;
+  --em-green2:   #007a4d;
+  --em-green3:   #004d30;
+  --em-dark:     #0a1a12;
+  --em-darker:   #060f0a;
+  --em-gold:     #f0c040;
+  --em-gold2:    #c89a20;
+  --em-red:      #e04030;
+  --em-blue:     #3060c0;
+  --em-white:    #e8f4ec;
+  --em-gray:     #4a6a54;
+  --em-panel:    #0d2018;
+  --em-panel2:   #122818;
+  --em-border:   #1a4028;
+  --em-shimmer:  rgba(0,168,107,0.15);
+  --pixel: 2px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--em-darker);
+  font-family: 'VT323', monospace;
+  color: var(--em-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated background grid */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,168,107,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,168,107,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: gridScroll 20s linear infinite;
+  pointer-events: none; z-index: 0;
+}
+@keyframes gridScroll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 32px 32px; }
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none; z-index: 1;
+}
+
+.container {
+  max-width: 480px; margin: 0 auto;
+  padding: 0 12px 60px;
+  position: relative; z-index: 2;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 24px 0 16px;
+  position: relative;
+}
+.header-gem {
+  display: flex; justify-content: center; align-items: center; gap: 10px;
+  margin-bottom: 6px;
+}
+.gem {
+  width: 14px; height: 14px;
+  background: linear-gradient(135deg, #00ff88, #00a86b, #004d30);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  animation: gemPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #00ff88);
+}
+@keyframes gemPulse {
+  0%,100% { filter: drop-shadow(0 0 4px #00ff88); }
+  50%     { filter: drop-shadow(0 0 12px #00ff88); }
+}
+.header-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px; color: var(--em-gold);
+  text-shadow: 2px 2px 0 var(--em-gold2), 0 0 20px rgba(240,192,64,0.4);
+  letter-spacing: 1px; line-height: 1.6;
+}
+.header-sub {
+  font-size: 18px; color: var(--em-green);
+  letter-spacing: 3px; margin-top: 2px;
+}
+.header-version {
+  display: inline-block;
+  background: var(--em-green);
+  color: var(--em-darker);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; padding: 3px 8px; border-radius: 2px;
+  margin-top: 6px; letter-spacing: 1px;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 2px; margin: 10px 0;
+  background: linear-gradient(90deg, transparent, var(--em-green), var(--em-gold), var(--em-green), transparent);
+}
+
+/* ── TABS ── */
+.tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 4px; margin-bottom: 16px;
+  background: var(--em-panel); border: 2px solid var(--em-border);
+  border-radius: 4px; padding: 4px;
+}
+.tab {
+  padding: 8px 4px; text-align: center;
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  letter-spacing: 0.5px; border-radius: 3px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.1s;
+  line-height: 1.6; -webkit-tap-highlight-color: transparent;
+}
+.tab.active {
+  background: var(--em-green); color: var(--em-darker);
+  border-color: var(--em-gold);
+  box-shadow: 0 0 10px rgba(0,168,107,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.tab.inactive {
+  background: transparent; color: var(--em-gray);
+  border-color: var(--em-border);
+}
+.tab.inactive:active { background: var(--em-border); }
+
+/* ── PANEL ── */
+.panel {
+  background: var(--em-panel);
+  border: 2px solid var(--em-border);
+  border-radius: 4px;
+  padding: 14px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--em-green), transparent);
+}
+.panel-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: var(--em-gold); letter-spacing: 1px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.panel-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--em-border), transparent);
+}
+
+/* ── SEARCH INPUT ── */
+.search-row { display: flex; gap: 6px; }
+.poke-input {
+  flex: 1;
+  background: var(--em-darker); border: 2px solid var(--em-border);
+  border-radius: 3px; padding: 10px 12px;
+  color: var(--em-white); font-family: 'VT323', monospace; font-size: 18px;
+  outline: none; letter-spacing: 1px;
+  transition: border-color 0.15s;
+}
+.poke-input:focus { border-color: var(--em-green); box-shadow: 0 0 0 2px rgba(0,168,107,0.2); }
+.poke-input::placeholder { color: var(--em-gray); }
+
+.poke-btn {
+  background: var(--em-green); border: 2px solid var(--em-gold);
+  border-radius: 3px; color: var(--em-darker);
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  padding: 0 14px; cursor: pointer; letter-spacing: 1px;
+  transition: all 0.1s; -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.poke-btn:active { background: var(--em-green2); transform: translateY(1px); }
+
+.poke-btn-gray {
+  background: var(--em-panel2); border: 2px solid var(--em-border);
+  border-radius: 3px; color: var(--em-gray);
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  padding: 0 14px; cursor: pointer; letter-spacing: 1px;
+  -webkit-tap-highlight-color: transparent;
+}
+.poke-btn-gray:active { background: var(--em-border); }
+
+/* ── SUGGESTIONS ── */
+.suggestions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.suggestion {
+  background: var(--em-darker); border: 1px solid var(--em-border);
+  color: var(--em-gray); font-family: 'VT323', monospace; font-size: 16px;
+  padding: 3px 10px; border-radius: 2px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; letter-spacing: 1px;
+}
+.suggestion:active { border-color: var(--em-green); color: var(--em-white); }
+
+/* ── ERROR ── */
+.poke-error { color: var(--em-red); font-size: 15px; margin-top: 6px; letter-spacing: 1px; }
+
+/* ── LOADING ── */
+.poke-loading {
+  text-align: center; color: var(--em-green); font-size: 18px;
+  letter-spacing: 3px; padding: 20px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── ENEMY CARD ── */
+.enemy-card {
+  background: var(--em-panel2); border: 2px solid var(--em-border);
+  border-radius: 4px; padding: 14px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 12px; position: relative; overflow: hidden;
+}
+.enemy-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(0,168,107,0.08), transparent 60%);
+  pointer-events: none;
+}
+.enemy-sprite {
+  width: 80px; height: 80px; image-rendering: pixelated; flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(0,168,107,0.4));
+}
+.enemy-vs { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--em-gray); letter-spacing: 2px; margin-bottom: 4px; }
+.enemy-name { font-size: 26px; color: var(--em-white); letter-spacing: 2px; text-transform: capitalize; line-height: 1; }
+.type-badges { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.tbadge {
+  color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px;
+  padding: 3px 6px; border-radius: 2px; letter-spacing: 0.5px;
+  text-transform: uppercase; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+}
+
+/* ── PARTY RESULT CARDS ── */
+.party-results { display: flex; flex-direction: column; gap: 8px; }
+.result-card {
+  background: var(--em-panel2); border: 2px solid var(--em-border);
+  border-radius: 4px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.result-card.best {
+  border-color: var(--em-gold);
+  background: linear-gradient(135deg, rgba(240,192,64,0.08), var(--em-panel2));
+  box-shadow: 0 0 16px rgba(240,192,64,0.15);
+}
+.result-card.best::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--em-gold), transparent);
+}
+.result-card.dimmed { opacity: 0.45; }
+.result-sprite { width: 52px; height: 52px; image-rendering: pixelated; flex-shrink: 0; }
+.result-info { flex: 1; min-width: 0; }
+.result-name-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.result-name { font-size: 20px; color: var(--em-white); letter-spacing: 1px; }
+.result-ptype { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--em-gray); }
+.result-badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.r-badge {
+  font-family: 'Press Start 2P', monospace; font-size: 6px; font-weight: bold;
+  letter-spacing: 0.5px; padding: 3px 7px; border-radius: 2px; white-space: nowrap;
+}
+.r-danger { font-size: 14px; color: var(--em-red); letter-spacing: 1px; }
+.r-moves { font-size: 14px; color: var(--em-gray); margin-top: 3px; letter-spacing: 1px; }
+.best-crown {
+  position: absolute; top: 6px; right: 8px;
+  font-family: 'Press Start 2P', monospace; font-size: 6px;
+  color: var(--em-gold); letter-spacing: 1px;
+}
+
+/* ── SECTION LABEL ── */
+.sec-label {
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: var(--em-green); letter-spacing: 1px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--em-border); }
+
+/* ── TEAM EDITOR ── */
+.member-card {
+  background: var(--em-panel2); border: 2px solid var(--em-border);
+  border-radius: 4px; margin-bottom: 8px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.member-card.open { border-color: var(--em-green); }
+.member-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.member-sprite { width: 52px; height: 52px; image-rendering: pixelated; flex-shrink: 0; }
+.member-info { flex: 1; }
+.member-name { font-size: 20px; color: var(--em-white); letter-spacing: 1px; }
+.member-types { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+.member-chevron {
+  font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--em-gray);
+  transition: transform 0.2s; padding: 4px;
+}
+.member-chevron.open { transform: rotate(180deg); color: var(--em-green); }
+.member-body {
+  border-top: 2px solid var(--em-border); padding: 12px;
+  display: none;
+}
+.member-body.open { display: block; }
+
+/* Editor sections */
+.ed-section { margin-bottom: 14px; }
+.ed-label {
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: var(--em-gold); letter-spacing: 1px; margin-bottom: 8px;
+}
+
+/* Swap */
+.swap-row { display: flex; gap: 6px; }
+.swap-preview {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+  background: rgba(0,168,107,0.08); border: 2px solid var(--em-green);
+  border-radius: 4px; padding: 8px 10px;
+}
+.swap-preview img { width: 48px; height: 48px; image-rendering: pixelated; }
+.swap-preview-name { font-size: 18px; color: var(--em-white); text-transform: capitalize; letter-spacing: 1px; }
+.swap-preview-types { display: flex; gap: 4px; margin-top: 3px; }
+.swap-confirm {
+  margin-left: auto;
+  background: var(--em-green); border: 2px solid var(--em-gold);
+  border-radius: 3px; color: var(--em-darker);
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  padding: 6px 10px; cursor: pointer; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Evolution */
+.evo-chain { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.evo-step {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--em-darker); border: 2px solid var(--em-border);
+  border-radius: 4px; padding: 6px 8px; cursor: pointer;
+  min-width: 62px; -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.evo-step img { width: 44px; height: 44px; image-rendering: pixelated; }
+.evo-step-name { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--em-gray); margin-top: 3px; text-transform: capitalize; text-align: center; line-height: 1.4; }
+.evo-step.current { border-color: var(--em-green); background: rgba(0,168,107,0.1); }
+.evo-step.current .evo-step-name { color: var(--em-green); }
+.evo-step.available { border-color: var(--em-gold); background: rgba(240,192,64,0.08); box-shadow: 0 0 8px rgba(240,192,64,0.2); }
+.evo-step.available .evo-step-name { color: var(--em-gold); }
+.evo-arrow { color: var(--em-green); font-size: 20px; }
+.evo-hint { font-size: 13px; color: var(--em-gray); letter-spacing: 1px; margin-top: 5px; }
+.evo-none { font-size: 15px; color: var(--em-gray); font-style: italic; }
+.evo-load-btn {
+  background: var(--em-darker); border: 2px dashed var(--em-border);
+  border-radius: 3px; color: var(--em-gray);
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  padding: 9px 12px; cursor: pointer; width: 100%;
+  -webkit-tap-highlight-color: transparent; letter-spacing: 1px;
+}
+.evo-load-btn:active { border-color: var(--em-green); color: var(--em-green); }
+
+/* Moves */
+.moves-list { display: flex; flex-direction: column; gap: 6px; }
+.move-row { display: flex; align-items: center; gap: 6px; }
+.move-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.move-input {
+  flex: 1; background: var(--em-darker); border: 2px solid var(--em-border);
+  border-radius: 3px; padding: 7px 10px; color: var(--em-white);
+  font-family: 'VT323', monospace; font-size: 17px; outline: none; letter-spacing: 1px;
+}
+.move-input:focus { border-color: var(--em-green); }
+.move-remove {
+  background: transparent; border: none; color: var(--em-gray);
+  font-size: 18px; cursor: pointer; padding: 4px 6px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.move-remove:active { color: var(--em-red); }
+.add-move-btn {
+  background: transparent; border: 2px dashed var(--em-border);
+  border-radius: 3px; color: var(--em-gray);
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  padding: 8px; cursor: pointer; width: 100%; margin-top: 6px;
+  -webkit-tap-highlight-color: transparent; letter-spacing: 1px;
+}
+.add-move-btn:active { border-color: var(--em-green); color: var(--em-green); }
+
+/* ── CATCH ADVISOR ── */
+.catch-result {
+  background: var(--em-panel2); border: 2px solid var(--em-border);
+  border-radius: 4px; overflow: hidden; margin-top: 10px;
+}
+.catch-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--em-panel);
+  border-bottom: 2px solid var(--em-border);
+}
+.catch-sprite { width: 72px; height: 72px; image-rendering: pixelated; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(0,168,107,0.3)); }
+.catch-pname { font-size: 24px; color: var(--em-white); letter-spacing: 2px; text-transform: capitalize; }
+.catch-verdict {
+  display: inline-block; margin-top: 5px;
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  padding: 4px 8px; border-radius: 2px; letter-spacing: 1px;
+}
+.verdict-yes { background: var(--em-green); color: var(--em-darker); }
+.verdict-maybe { background: var(--em-gold); color: var(--em-darker); }
+.verdict-no { background: var(--em-red); color: #fff; }
+
+.catch-body { padding: 12px 14px; }
+.catch-reason {
+  font-size: 16px; color: var(--em-white); letter-spacing: 1px; line-height: 1.5;
+  margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--em-border);
+}
+
+.swap-suggestion {
+  background: var(--em-darker); border: 2px solid var(--em-border);
+  border-radius: 3px; padding: 10px 12px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px;
+}
+.swap-suggestion.recommended { border-color: var(--em-gold); background: rgba(240,192,64,0.06); }
+.swap-sug-sprite { width: 44px; height: 44px; image-rendering: pixelated; flex-shrink: 0; }
+.swap-sug-info { flex: 1; }
+.swap-sug-name { font-size: 17px; color: var(--em-white); letter-spacing: 1px; }
+.swap-sug-reason { font-size: 13px; color: var(--em-gray); margin-top: 2px; letter-spacing: 1px; }
+.swap-sug-label {
+  font-family: 'Press Start 2P', monospace; font-size: 6px;
+  color: var(--em-gold); letter-spacing: 1px; white-space: nowrap;
+}
+
+/* Coverage bars */
+.coverage-section { margin-top: 12px; }
+.coverage-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.cov-type {
+  font-family: 'Press Start 2P', monospace; font-size: 6px;
+  padding: 2px 5px; border-radius: 2px; color: #fff; min-width: 52px;
+  text-align: center; text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+}
+.cov-bar-bg { flex: 1; height: 8px; background: var(--em-darker); border-radius: 1px; overflow: hidden; border: 1px solid var(--em-border); }
+.cov-bar { height: 100%; border-radius: 1px; transition: width 0.4s ease; }
+.cov-label { font-size: 13px; color: var(--em-gray); min-width: 30px; text-align: right; }
+
+/* Pokéball deco */
+.pokeball-deco {
+  position: fixed; bottom: -30px; right: -30px;
+  width: 120px; height: 120px; opacity: 0.04;
+  border: 8px solid var(--em-green);
+  border-radius: 50%; pointer-events: none; z-index: 0;
+}
+.pokeball-deco::after {
+  content: ''; position: absolute; top: 50%; left: -8px; right: -8px; height: 8px;
+  background: var(--em-green); transform: translateY(-50%);
+}
+
+/* HP bar style num display */
+.stat-bar { height: 6px; border-radius: 1px; background: var(--em-darker); border: 1px solid var(--em-border); margin-top: 4px; overflow: hidden; }
+.stat-fill { height: 100%; background: linear-gradient(90deg, var(--em-green), #00ff88); border-radius: 1px; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 32px 16px;
+  color: var(--em-gray); font-size: 15px; letter-spacing: 2px; line-height: 2.2;
+}
+.empty-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.4; }
+</style>
+</head>
+<body>
+<div class="pokeball-deco"></div>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-gem">
+      <div class="gem"></div>
+      <div class="header-title">TEAM ADVISOR</div>
+      <div class="gem"></div>
+    </div>
+    <div class="header-sub">POKÉMON EMERALD</div>
+    <div class="header-version">HOENN REGION</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab-battle" onclick="switchTab('battle')">⚔<br>BATTLE</button>
+    <button class="tab inactive" id="tab-catch"  onclick="switchTab('catch')">🎣<br>CATCH?</button>
+    <button class="tab inactive" id="tab-team"   onclick="switchTab('team')">✎<br>MY TEAM</button>
+  </div>
+
+  <!-- ══════ BATTLE PANE ══════ -->
+  <div id="pane-battle">
+    <div class="panel">
+      <div class="panel-label">ENEMY LOOKUP</div>
+      <div class="search-row">
+        <input class="poke-input" id="battleInput" placeholder="e.g. Geodude" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <button class="poke-btn" onclick="doBattleLookup()">GO!</button>
+      </div>
+      <div id="battleError" class="poke-error" style="display:none"></div>
+      <div class="suggestions" id="battleSuggs"></div>
+    </div>
+    <div id="battleResults"></div>
+  </div>
+
+  <!-- ══════ CATCH PANE ══════ -->
+  <div id="pane-catch" style="display:none">
+    <div class="panel">
+      <div class="panel-label">SHOULD I CATCH IT?</div>
+      <div class="search-row">
+        <input class="poke-input" id="catchInput" placeholder="e.g. Ralts" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <button class="poke-btn" onclick="doCatchAnalysis()">CHECK!</button>
+      </div>
+      <div id="catchError" class="poke-error" style="display:none"></div>
+      <div class="suggestions" id="catchSuggs"></div>
+    </div>
+    <div id="catchResults"></div>
+  </div>
+
+  <!-- ══════ TEAM PANE ══════ -->
+  <div id="pane-team" style="display:none">
+    <div id="teamGrid"></div>
+  </div>
+
+</div>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────
+const TC = {
+  normal:"#9099A1",fire:"#e8400c",water:"#3892DC",electric:"#f8d030",
+  grass:"#3fa129",ice:"#60CADF",fighting:"#d56723",poison:"#b567ce",
+  ground:"#ab9842",flying:"#81B9EF",psychic:"#f85888",bug:"#93b11a",
+  rock:"#A38C21",ghost:"#6e4570",dragon:"#4932D4",dark:"#4b3b24",
+  steel:"#aab8c3",fairy:"#f4b1d8"
+};
+
+const MOVE_TYPES = {
+  scratch:"normal",pound:"normal",tackle:"normal","quick attack":"normal",swift:"normal",
+  return:"normal","double edge":"normal","hyper fang":"normal",
+  ember:"fire","fire punch":"fire",flamethrower:"fire","fire blast":"fire","heat wave":"fire",
+  surf:"water","water gun":"water","bubble beam":"water",waterfall:"water",
+  thundershock:"electric","thunder wave":"electric",spark:"electric",thunderbolt:"electric",
+  thunder:"electric","volt tackle":"electric",
+  absorb:"grass","mega drain":"grass","giga drain":"grass","razor leaf":"grass",
+  "bullet seed":"grass","leaf blade":"grass","energy ball":"grass",
+  "ice beam":"ice",blizzard:"ice","powder snow":"ice","ice punch":"ice",
+  "low kick":"fighting","karate chop":"fighting","mach punch":"fighting",
+  "brick break":"fighting","cross chop":"fighting","sky uppercut":"fighting",
+  "poison sting":"poison","sludge bomb":"poison","sludge":"poison",
+  "mud slap":"ground",dig:"ground",earthquake:"ground","mud shot":"ground",
+  peck:"flying","wing attack":"flying","aerial ace":"flying",fly:"flying",
+  gust:"flying","brave bird":"flying","air cutter":"flying",
+  confusion:"psychic",psychic:"psychic",psybeam:"psychic","calm mind":"psychic",
+  "string shot":"bug","fury cutter":"bug","silver wind":"bug","signal beam":"bug",
+  "rock throw":"rock","rock tomb":"rock","rock blast":"rock","stone edge":"rock",
+  "shadow ball":"ghost",lick:"ghost","shadow punch":"ghost",
+  "dragon claw":"dragon","dragon breath":"dragon","dragon rage":"dragon",
+  bite:"dark",crunch:"dark","faint attack":"dark",
+  "iron tail":"steel","metal claw":"steel","flash cannon":"steel",
+  "dazzling gleam":"fairy","moonblast":"fairy",
+  growl:"—",leer:"—",smokescreen:"—",yawn:"—",encore:"—",charm:"—",
+  "sweet kiss":"—","harden":"—","tail whip":"—","string shot":"—",
+};
+
+const TYPE_CHART = {
+  normal:   {rock:0.5,ghost:0,steel:0.5},
+  fire:     {fire:0.5,water:0.5,grass:2,ice:2,bug:2,rock:0.5,dragon:0.5,steel:2},
+  water:    {fire:2,water:0.5,grass:0.5,ground:2,rock:2,dragon:0.5},
+  electric: {water:2,electric:0.5,grass:0.5,ground:0,flying:2,dragon:0.5},
+  grass:    {fire:0.5,water:2,grass:0.5,poison:0.5,ground:2,flying:0.5,bug:0.5,rock:2,dragon:0.5,steel:0.5},
+  ice:      {fire:0.5,water:0.5,grass:2,ice:0.5,ground:2,flying:2,dragon:2,steel:0.5},
+  fighting: {normal:2,ice:2,poison:0.5,flying:0.5,psychic:0.5,bug:0.5,rock:2,ghost:0,dark:2,steel:2,fairy:0.5},
+  poison:   {grass:2,poison:0.5,ground:0.5,rock:0.5,ghost:0.5,steel:0,fairy:2},
+  ground:   {fire:2,electric:2,grass:0.5,poison:2,flying:0,bug:0.5,rock:2,steel:2},
+  flying:   {electric:0.5,grass:2,fighting:2,bug:2,rock:0.5,steel:0.5},
+  psychic:  {fighting:2,poison:2,psychic:0.5,dark:0,steel:0.5},
+  bug:      {fire:0.5,grass:2,fighting:0.5,flying:0.5,psychic:2,ghost:0.5,dark:2,steel:0.5,fairy:0.5},
+  rock:     {fire:2,ice:2,fighting:0.5,ground:0.5,flying:2,bug:2,steel:0.5},
+  ghost:    {normal:0,psychic:2,ghost:2,dark:0.5},
+  dragon:   {dragon:2,steel:0.5,fairy:0},
+  dark:     {fighting:0.5,psychic:2,ghost:2,dark:0.5,fairy:0.5},
+  steel:    {fire:0.5,water:0.5,electric:0.5,ice:2,rock:2,steel:0.5,fairy:2},
+  fairy:    {fire:0.5,fighting:2,poison:0.5,dragon:2,dark:2,steel:0.5},
+};
+
+const ALL_TYPES = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+
+const BATTLE_SUGGS = ["Magikarp","Geodude","Tentacool","Ralts","Abra","Zigzagoon","Machop","Gastly","Wingull","Numel"];
+const CATCH_SUGGS  = ["Ralts","Trapinch","Bagon","Larvitar","Heracross","Misdreavus","Absol","Feebas"];
+
+// ─── TEAM STATE ───────────────────────────────────────────────
+let team = [
+  { name:"Kakuna",    id:14,  types:["bug","poison"],   moves:["Harden"],                                           color:"#93b11a" },
+  { name:"Charmander",id:4,   types:["fire"],            moves:["Scratch","Ember","Growl","Smokescreen"],             color:"#e8400c" },
+  { name:"Slakoth",   id:287, types:["normal"],          moves:["Scratch","Yawn","Encore"],                           color:"#9099A1" },
+  { name:"Grovyle",   id:253, types:["grass"],           moves:["Pound","Leer","Absorb","Quick Attack"],              color:"#3fa129" },
+  { name:"Pichu",     id:172, types:["electric"],        moves:["Thundershock","Charm","Sweet Kiss","Thunder Wave"],  color:"#f8d030" },
+  { name:"Spearow",   id:21,  types:["normal","flying"], moves:["Peck","Growl","Leer"],                               color:"#81B9EF" },
+];
+
+let editorState = team.map(() => ({
+  open:false, swapInput:"", swapPreview:null, swapError:"",
+  swapLoading:false, evoChain:null, evoLoading:false,
+}));
+
+// ─── HELPERS ─────────────────────────────────────────────────
+function getEff(at, defTypes) {
+  let m = 1;
+  defTypes.forEach(dt => m *= ((TYPE_CHART[at]||{})[dt] ?? 1));
+  return m;
+}
+function getAttackTypes(moves) {
+  const s = new Set();
+  moves.forEach(m => { const t = MOVE_TYPES[m.toLowerCase()]; if (t && t !== "—") s.add(t); });
+  return [...s];
+}
+function getBestMult(moves, defTypes) {
+  const ats = getAttackTypes(moves);
+  if (!ats.length) return 0;
+  return Math.max(...ats.map(at => getEff(at, defTypes)));
+}
+function getDefMult(pTypes, atkTypes) {
+  let m = 1;
+  atkTypes.forEach(at => pTypes.forEach(dt => m *= ((TYPE_CHART[at]||{})[dt] ?? 1)));
+  return m;
+}
+function getRating(mult) {
+  if (mult === 0)  return { label:"NO EFFECT",        color:"#555555" };
+  if (mult >= 4)   return { label:"4× SUPER!",         color:"#ff4444" };
+  if (mult >= 2)   return { label:"2× SUPER",          color:"#00c864" };
+  if (mult === 1)  return { label:"NEUTRAL",           color:"#6b7280" };
+  return              { label:"NOT VERY",           color:"#ff9900" };
+}
+function typeBadge(t) {
+  return `<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`;
+}
+function spriteUrl(id) {
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+}
+async function fetchPoke(name) {
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.trim().toLowerCase()}`);
+  if (!res.ok) throw new Error();
+  const d = await res.json();
+  return { name:d.name, id:d.id, types:d.types.map(t=>t.type.name), sprite:d.sprites.front_default };
+}
+
+// ─── TEAM COVERAGE SCORE ─────────────────────────────────────
+function teamCoverageScore(members) {
+  // How many of 18 types have at least 2× coverage
+  let covered = 0;
+  ALL_TYPES.forEach(t => {
+    const hasCoverage = members.some(p => getBestMult(p.moves, [t]) >= 2);
+    if (hasCoverage) covered++;
+  });
+  return covered;
+}
+
+function teamWeaknesses(members) {
+  // Types that ALL members are weak to (no one resists)
+  return ALL_TYPES.filter(t =>
+    members.every(p => getDefMult(p.types, [t]) >= 2)
+  );
+}
+
+function teamUncoveredTypes(members) {
+  return ALL_TYPES.filter(t =>
+    !members.some(p => getBestMult(p.moves, [t]) >= 2)
+  );
+}
+
+// ─── TAB SWITCH ──────────────────────────────────────────────
+function switchTab(tab) {
+  ['battle','catch','team'].forEach(t => {
+    document.getElementById(`pane-${t}`).style.display = t===tab ? '' : 'none';
+    const el = document.getElementById(`tab-${t}`);
+    el.className = 'tab ' + (t===tab ? 'active' : 'inactive');
+  });
+  if (tab === 'team') renderTeamEditor();
+}
+
+// ─── INIT SUGGESTIONS ────────────────────────────────────────
+function makeSuggs(containerId, list, lookupFn) {
+  document.getElementById(containerId).innerHTML =
+    list.map(s => `<button class="suggestion" onclick="${lookupFn}('${s}')">${s}</button>`).join('');
+}
+makeSuggs('battleSuggs', BATTLE_SUGGS, 'quickBattle');
+makeSuggs('catchSuggs',  CATCH_SUGGS,  'quickCatch');
+
+document.getElementById('battleInput').addEventListener('keydown', e => { if(e.key==='Enter') doBattleLookup(); });
+document.getElementById('catchInput').addEventListener('keydown', e => { if(e.key==='Enter') doCatchAnalysis(); });
+
+// ─── BATTLE TAB ──────────────────────────────────────────────
+function doBattleLookup() {
+  const v = document.getElementById('battleInput').value.trim();
+  if (v) fetchAndRenderBattle(v);
+}
+function quickBattle(name) {
+  document.getElementById('battleInput').value = name;
+  fetchAndRenderBattle(name);
+}
+
+async function fetchAndRenderBattle(name) {
+  const errEl = document.getElementById('battleError');
+  const resEl = document.getElementById('battleResults');
+  errEl.style.display = 'none';
+  resEl.innerHTML = `<div class="poke-loading">SEARCHING...</div>`;
+  try {
+    const enemy = await fetchPoke(name);
+    renderBattle(enemy);
+  } catch {
+    resEl.innerHTML = '';
+    errEl.textContent = `"${name}" NOT FOUND — CHECK SPELLING!`;
+    errEl.style.display = 'block';
+  }
+}
+
+function renderBattle(enemy) {
+  const scored = team.map(p => ({
+    ...p,
+    offMult: getBestMult(p.moves, enemy.types),
+    defMult: getDefMult(p.types, enemy.types),
+  })).sort((a,b) => b.offMult - a.offMult);
+
+  let html = `
+    <div class="enemy-card">
+      <img class="enemy-sprite" src="${enemy.sprite}" alt="${enemy.name}"/>
+      <div>
+        <div class="enemy-vs">VS</div>
+        <div class="enemy-name">${enemy.name}</div>
+        <div class="type-badges">${enemy.types.map(typeBadge).join('')}</div>
+      </div>
+    </div>
+    <div class="sec-label">PARTY MATCHUP</div>
+    <div class="party-results">
+  `;
+
+  scored.forEach((p, i) => {
+    const isTop = i === 0 && p.offMult > 0;
+    const r = getRating(p.offMult);
+    const takesSuper = p.defMult >= 2;
+    const dmgMoves = p.moves.filter(m => {
+      const t = MOVE_TYPES[m.toLowerCase()];
+      return t && t !== "—";
+    });
+
+    html += `
+      <div class="result-card ${isTop?'best':p.offMult===0?'dimmed':''}">
+        ${isTop ? `<div class="best-crown">★ BEST</div>` : ''}
+        <img class="result-sprite" src="${spriteUrl(p.id)}" alt="${p.name}"/>
+        <div class="result-info">
+          <div class="result-name-row">
+            <span class="result-name">${p.name}</span>
+            <span class="result-ptype">${p.types.map(t=>t.toUpperCase()).join('/')}</span>
+          </div>
+          <div class="result-badges">
+            <span class="r-badge" style="color:${r.color};background:${r.color}22;border:1px solid ${r.color}55">
+              ${p.offMult>0?p.offMult+'× ':''}${r.label}
+            </span>
+            ${takesSuper ? `<span class="r-danger">⚠ takes ${p.defMult}× dmg</span>` : ''}
+          </div>
+          ${dmgMoves.length && p.offMult>0 ? `<div class="r-moves">USE: ${dmgMoves.join(', ')}</div>` : ''}
+          ${!getAttackTypes(p.moves).length ? `<div class="r-moves" style="color:#555">NO DAMAGE MOVES</div>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  document.getElementById('battleResults').innerHTML = html;
+}
+
+// ─── CATCH ANALYSIS ──────────────────────────────────────────
+function doCatchAnalysis() {
+  const v = document.getElementById('catchInput').value.trim();
+  if (v) fetchAndRenderCatch(v);
+}
+function quickCatch(name) {
+  document.getElementById('catchInput').value = name;
+  fetchAndRenderCatch(name);
+}
+
+async function fetchAndRenderCatch(name) {
+  const errEl = document.getElementById('catchError');
+  const resEl = document.getElementById('catchResults');
+  errEl.style.display = 'none';
+  resEl.innerHTML = `<div class="poke-loading">ANALYZING TEAM...</div>`;
+  try {
+    const candidate = await fetchPoke(name);
+    renderCatchAnalysis(candidate);
+  } catch {
+    resEl.innerHTML = '';
+    errEl.textContent = `"${name}" NOT FOUND — CHECK SPELLING!`;
+    errEl.style.display = 'block';
+  }
+}
+
+function renderCatchAnalysis(candidate) {
+  const currentScore  = teamCoverageScore(team);
+  const currentWeaks  = teamWeaknesses(team);
+  const currentUncov  = teamUncoveredTypes(team);
+
+  // Simulate replacing each team slot with candidate
+  const improvements = team.map((member, i) => {
+    const newTeam = team.map((p, j) => j === i ? { ...candidate, moves: candidate.types.map(t => t) } : p);
+    // Give candidate credit for STAB moves from its types
+    const fakeMoves = candidate.types.flatMap(t => {
+      const moveMap = { fire:["ember"], water:["water gun"], grass:["absorb"], electric:["thundershock"],
+        psychic:["confusion"], fighting:["low kick"], rock:["rock throw"], ground:["mud slap"],
+        flying:["gust"], ghost:["shadow ball"], ice:["ice beam"], dragon:["dragon claw"],
+        dark:["bite"], steel:["metal claw"], bug:["fury cutter"], poison:["poison sting"],
+        normal:["tackle"], fairy:["dazzling gleam"] };
+      return moveMap[t] || [];
+    });
+    const fakeCandidate = { ...candidate, moves: fakeMoves };
+    const testTeam = team.map((p, j) => j === i ? fakeCandidate : p);
+    const newScore = teamCoverageScore(testTeam);
+    const newWeaks = teamWeaknesses(testTeam);
+    const scoreDelta = newScore - currentScore;
+    const weakDelta  = currentWeaks.length - newWeaks.length;
+    return { member, index: i, scoreDelta, weakDelta, newScore, newWeaks };
+  }).sort((a, b) => (b.scoreDelta + b.weakDelta) - (a.scoreDelta + a.weakDelta));
+
+  const best = improvements[0];
+  const netGain = best.scoreDelta + best.weakDelta;
+
+  // Determine verdict
+  let verdict, verdictClass, reason;
+  const newTypeCoverage = candidate.types.some(t => !team.some(p => p.types.includes(t)));
+  const coversWeakness = candidate.types.some(t => !currentWeaks.includes(t) === false || currentUncov.includes(t));
+
+  if (netGain >= 2 || best.scoreDelta >= 2) {
+    verdict = "CATCH IT!"; verdictClass = "verdict-yes";
+    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} covers ${best.scoreDelta} new type(s) your team is missing. Solid upgrade for coverage.`;
+  } else if (netGain >= 1 || currentUncov.some(t => candidate.types.some(at => getEff(at,[t])>=2))) {
+    verdict = "WORTH IT"; verdictClass = "verdict-maybe";
+    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} provides some new coverage and could fill a gap. Consider it if you need that typing.`;
+  } else if (newTypeCoverage) {
+    verdict = "MAYBE"; verdictClass = "verdict-maybe";
+    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} brings a new type to the team but doesn't dramatically improve coverage right now.`;
+  } else {
+    verdict = "SKIP IT"; verdictClass = "verdict-no";
+    reason = `Your team already covers what ${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} offers. No significant coverage improvement.`;
+  }
+
+  // Types candidate covers that team currently misses
+  const newCoverage = currentUncov.filter(t => {
+    const fakeMoves = candidate.types.flatMap(ct => {
+      const mm = {fire:["ember"],water:["water gun"],grass:["absorb"],electric:["thundershock"],psychic:["confusion"],fighting:["low kick"],rock:["rock throw"],ground:["mud slap"],flying:["gust"],ghost:["shadow ball"],ice:["ice beam"],dragon:["dragon claw"],dark:["bite"],steel:["metal claw"],bug:["fury cutter"],poison:["poison sting"],normal:["tackle"],fairy:["dazzling gleam"]};
+      return mm[ct] || [];
+    });
+    return getBestMult(fakeMoves, [t]) >= 2;
+  });
+
+  let html = `
+    <div class="catch-result">
+      <div class="catch-header">
+        <img class="catch-sprite" src="${candidate.sprite}" alt="${candidate.name}"/>
+        <div>
+          <div class="catch-pname">${candidate.name}</div>
+          <div class="type-badges" style="margin:4px 0">${candidate.types.map(typeBadge).join('')}</div>
+          <span class="catch-verdict ${verdictClass}">${verdict}</span>
+        </div>
+      </div>
+      <div class="catch-body">
+        <div class="catch-reason">${reason}</div>
+  `;
+
+  if (newCoverage.length > 0) {
+    html += `
+      <div class="sec-label" style="margin-bottom:8px">NEW TYPE COVERAGE</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">
+        ${newCoverage.map(t => `<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}
+      </div>
+    `;
+  }
+
+  html += `<div class="sec-label" style="margin-bottom:8px">SWAP SUGGESTIONS</div>`;
+
+  improvements.slice(0, 3).forEach((imp, i) => {
+    const isRec = i === 0 && netGain > 0;
+    const delta = imp.scoreDelta + imp.weakDelta;
+    const deltaStr = delta > 0 ? `+${delta} coverage` : delta === 0 ? 'No change' : `${delta} coverage`;
+    html += `
+      <div class="swap-suggestion ${isRec?'recommended':''}">
+        <img class="swap-sug-sprite" src="${spriteUrl(imp.member.id)}" alt="${imp.member.name}"/>
+        <div class="swap-sug-info">
+          <div class="swap-sug-name">Replace ${imp.member.name}</div>
+          <div class="swap-sug-reason">${deltaStr} · ${imp.newScore}/18 types covered</div>
+        </div>
+        ${isRec ? `<div class="swap-sug-label">★ BEST<br>SWAP</div>` : ''}
+      </div>
+    `;
+  });
+
+  // Current team weaknesses
+  if (currentWeaks.length) {
+    html += `
+      <div class="sec-label" style="margin-top:12px;margin-bottom:8px">TEAM WEAKNESSES</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${currentWeaks.map(t=>`<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}
+      </div>
+    `;
+  }
+
+  html += '</div></div>';
+  document.getElementById('catchResults').innerHTML = html;
+}
+
+// ─── TEAM EDITOR ─────────────────────────────────────────────
+function renderTeamEditor() {
+  document.getElementById('teamGrid').innerHTML = team.map((p,i) => buildMemberCard(p,i)).join('');
+}
+
+function buildMemberCard(p, i) {
+  const es = editorState[i];
+
+  const typeBadgesHtml = p.types.map(t =>
+    `<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`
+  ).join('');
+
+  // Swap preview
+  let swapPrevHtml = '';
+  if (es.swapPreview) {
+    const pv = es.swapPreview;
+    swapPrevHtml = `
+      <div class="swap-preview">
+        <img src="${pv.sprite}" alt="${pv.name}" style="width:48px;height:48px;image-rendering:pixelated"/>
+        <div>
+          <div class="swap-preview-name">${pv.name}</div>
+          <div class="swap-preview-types">${pv.types.map(t=>`<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}</div>
+        </div>
+        <button class="swap-confirm" onclick="confirmSwap(${i})">SWAP!</button>
+      </div>
+    `;
+  }
+
+  // Evolution
+  let evoHtml = '';
+  if (es.evoLoading) {
+    evoHtml = `<div class="poke-loading" style="text-align:left;padding:8px 0">LOADING...</div>`;
+  } else if (es.evoChain && es.evoChain.length > 1) {
+    const curPos = es.evoChain.findIndex(e => e.id === p.id);
+    evoHtml = `<div class="evo-chain">` + es.evoChain.map((e, ei) => {
+      const isCur  = e.id === p.id;
+      const isNext = ei === curPos + 1;
+      const cls = isCur ? 'current' : isNext ? 'available' : '';
+      const arrow = ei > 0 ? `<span class="evo-arrow">▶</span>` : '';
+      return `${arrow}<div class="evo-step ${cls}" onclick="evolveSlot(${i},${ei})">
+        <img src="${spriteUrl(e.id)}" alt="${e.name}"/>
+        <div class="evo-step-name">${e.name}</div>
+      </div>`;
+    }).join('') + `</div>
+    <div class="evo-hint">TAP GOLD STAGE TO EVOLVE</div>`;
+  } else if (es.evoChain && es.evoChain.length === 1) {
+    evoHtml = `<div class="evo-none">NO EVOLUTIONS</div>`;
+  } else {
+    evoHtml = `<button class="evo-load-btn" onclick="loadEvoChain(${i})">▶ LOAD EVOLUTION CHAIN</button>`;
+  }
+
+  // Moves
+  const movesHtml = p.moves.map((m, mi) => {
+    const mt = MOVE_TYPES[m.toLowerCase()];
+    const dotColor = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
+    return `
+      <div class="move-row">
+        <div class="move-dot" style="background:${dotColor}"></div>
+        <input class="move-input" value="${m}" placeholder="Move name"
+          onchange="updateMove(${i},${mi},this.value)"
+          autocorrect="off" autocapitalize="words" spellcheck="false"/>
+        <button class="move-remove" onclick="removeMove(${i},${mi})">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="member-card ${es.open?'open':''}" id="mc-${i}">
+      <div class="member-header" onclick="toggleMember(${i})">
+        <img class="member-sprite" src="${spriteUrl(p.id)}" alt="${p.name}"/>
+        <div class="member-info">
+          <div class="member-name">${p.name}</div>
+          <div class="member-types">${typeBadgesHtml}</div>
+        </div>
+        <div class="member-chevron ${es.open?'open':''}">▼</div>
+      </div>
+      <div class="member-body ${es.open?'open':''}">
+
+        <div class="ed-section">
+          <div class="ed-label">SWAP POKÉMON</div>
+          <div class="swap-row">
+            <input class="poke-input" placeholder="Search..." value="${es.swapInput}"
+              id="swap-input-${i}"
+              oninput="editorState[${i}].swapInput=this.value"
+              onkeydown="if(event.key==='Enter')searchSwap(${i})"
+              autocorrect="off" autocapitalize="off" spellcheck="false"/>
+            <button class="poke-btn-gray" onclick="searchSwap(${i})">${es.swapLoading?'...':'FIND'}</button>
+          </div>
+          ${es.swapError ? `<div class="poke-error">${es.swapError}</div>` : ''}
+          ${swapPrevHtml}
+        </div>
+
+        <div class="ed-section">
+          <div class="ed-label">EVOLUTION CHAIN</div>
+          ${evoHtml}
+        </div>
+
+        <div class="ed-section">
+          <div class="ed-label">MOVES (${p.moves.length}/4)</div>
+          <div class="moves-list">${movesHtml}</div>
+          ${p.moves.length < 4 ? `<button class="add-move-btn" onclick="addMove(${i})">+ ADD MOVE</button>` : ''}
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function toggleMember(i) {
+  editorState[i].open = !editorState[i].open;
+  renderTeamEditor();
+}
+
+// Swap
+async function searchSwap(i) {
+  const es = editorState[i];
+  const inp = document.getElementById(`swap-input-${i}`);
+  const val = inp ? inp.value.trim() : es.swapInput.trim();
+  if (!val) return;
+  es.swapInput = val;
+  es.swapLoading = true; es.swapError = ''; es.swapPreview = null;
+  renderTeamEditor();
+  try {
+    es.swapPreview = await fetchPoke(val);
+  } catch {
+    es.swapError = `"${val}" NOT FOUND`;
+  }
+  es.swapLoading = false;
+  renderTeamEditor();
+}
+
+function confirmSwap(i) {
+  const pv = editorState[i].swapPreview;
+  if (!pv) return;
+  team[i] = {
+    name: pv.name.charAt(0).toUpperCase() + pv.name.slice(1),
+    id: pv.id, types: pv.types,
+    moves: ["—"], color: TC[pv.types[0]] || "#888",
+  };
+  editorState[i] = { open:true, swapInput:"", swapPreview:null, swapError:"", swapLoading:false, evoChain:null, evoLoading:false };
+  renderTeamEditor();
+}
+
+// Evolution
+async function loadEvoChain(i) {
+  editorState[i].evoLoading = true;
+  renderTeamEditor();
+  try {
+    const specRes  = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${team[i].id}`);
+    const specData = await specRes.json();
+    const evoRes   = await fetch(specData.evolution_chain.url);
+    const evoData  = await evoRes.json();
+    const chain = [];
+    async function walk(node) {
+      const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${node.species.name}`);
+      const d = await r.json();
+      chain.push({ name: node.species.name, id: d.id });
+      for (const nx of node.evolves_to) await walk(nx);
+    }
+    await walk(evoData.chain);
+    editorState[i].evoChain = chain;
+  } catch { editorState[i].evoChain = []; }
+  editorState[i].evoLoading = false;
+  renderTeamEditor();
+}
+
+async function evolveSlot(slotIdx, evoIdx) {
+  const chain  = editorState[slotIdx].evoChain;
+  const curPos = chain.findIndex(e => e.id === team[slotIdx].id);
+  if (evoIdx !== curPos + 1) return;
+  const target = chain[evoIdx];
+  try {
+    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${target.id}`);
+    const d = await r.json();
+    const newTypes = d.types.map(t=>t.type.name);
+    team[slotIdx].name  = target.name.charAt(0).toUpperCase() + target.name.slice(1);
+    team[slotIdx].id    = target.id;
+    team[slotIdx].types = newTypes;
+    team[slotIdx].color = TC[newTypes[0]] || '#888';
+  } catch {}
+  renderTeamEditor();
+}
+
+// Moves
+function updateMove(slotIdx, moveIdx, val) {
+  team[slotIdx].moves[moveIdx] = val.trim() || '—';
+  renderTeamEditor();
+}
+function removeMove(slotIdx, moveIdx) {
+  team[slotIdx].moves.splice(moveIdx, 1);
+  renderTeamEditor();
+}
+function addMove(slotIdx) {
+  if (team[slotIdx].moves.length < 4) {
+    team[slotIdx].moves.push('');
+    renderTeamEditor();
+    setTimeout(() => {
+      const card = document.getElementById(`mc-${slotIdx}`);
+      if (card) { const ins = card.querySelectorAll('.move-input'); if(ins.length) ins[ins.length-1].focus(); }
+    }, 50);
+  }
+}
+</script>
+</body>
+</html>
