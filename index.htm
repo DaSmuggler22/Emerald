@@ -400,6 +400,31 @@ padding: 10px 12px; cursor: pointer;
 .member-sprite { width: 52px; height: 52px; image-rendering: pixelated; flex-shrink: 0; }
 .member-info { flex: 1; }
 .member-name { font-size: 20px; color: #e8f4ec; letter-spacing: 1px; }
+.member-species { font-size: 11px; color: #4a6a54; letter-spacing: 2px; margin-top: 1px; text-transform: uppercase; }
+.nickname-input {
+background: transparent; border: none; border-bottom: 1px dashed #1a4028;
+color: #f0c040; font-family: ‘Courier New’, Courier, monospace;
+font-size: 18px; letter-spacing: 2px; outline: none; width: 100%;
+padding: 2px 0; text-transform: uppercase; -webkit-appearance: none;
+}
+.nickname-input::placeholder { color: #2a4a38; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 14px; }
+.nickname-input:focus { border-bottom-color: #f0c040; }
+
+/* Move autocomplete */
+.move-wrap { position: relative; flex: 1; }
+.move-suggestions {
+position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+background: #0d2018; border: 1px solid #1a4028; border-top: none;
+border-radius: 0 0 4px 4px; max-height: 150px; overflow-y: auto;
+}
+.move-suggestion-item {
+display: flex; align-items: center; gap: 8px;
+padding: 6px 10px; cursor: pointer; font-size: 14px; color: #e8f4ec;
+-webkit-tap-highlight-color: transparent;
+}
+.move-suggestion-item:active { background: rgba(0,168,107,0.15); }
+.move-sug-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.move-sug-type { font-size: 9px; color: #4a6a54; letter-spacing: 1px; margin-left: auto; font-family: ‘Courier New’, Courier, monospace; }
 .member-types { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
 .member-chevron {
 font-family: ‘Courier New’, Courier, monospace; font-size: 9px; color: #4a6a54;
@@ -1435,9 +1460,10 @@ function renderBattle(enemy) {
         <img class="result-sprite" src="${spriteUrl(p.id)}" alt="${p.name}"/>
         <div class="result-info">
           <div class="result-name-row">
-            <span class="result-name">${p.name}</span>
-            <span class="result-ptype">${p.types.map(t=>t.toUpperCase()).join('/')}</span>
+            <span class="result-name">${p.nickname ? p.nickname.toUpperCase() : p.name}</span>
+            ${p.nickname ? `<span class="result-ptype" style="color:#4a6a54">${p.name}</span>` : `<span class="result-ptype">${p.types.map(t=>t.toUpperCase()).join('/')}</span>`}
           </div>
+          ${p.nickname ? `<div style="font-size:9px;color:#4a6a54;letter-spacing:1px;margin-bottom:2px">${p.types.map(t=>t.toUpperCase()).join('/')}</div>` : ''}
           <div class="result-badges">
             <span class="r-badge" style="color:${r.color};background:${r.color}22;border:1px solid ${r.color}55">
               ${r.label}
@@ -1653,12 +1679,16 @@ function buildMemberCard(p, i) {
     const dotColor = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
     return `
       <div class="move-row">
-        <div class="move-dot" style="background:${dotColor}"></div>
-        <input class="move-input" value="${m}" placeholder="Move name"
-          oninput="previewMoveDot(${i},${mi},this.value)"
-          onblur="finalizeMove(${i},${mi},this.value)"
-          onkeydown="if(event.key==='Enter'){this.blur();}"
-          autocorrect="off" autocapitalize="words" spellcheck="false"/>
+        <div class="move-dot" id="dot-${i}-${mi}" style="background:${dotColor}"></div>
+        <div class="move-wrap">
+          <input class="move-input" value="${m}" placeholder="Move name"
+            id="move-input-${i}-${mi}"
+            oninput="onMoveInput(${i},${mi},this.value)"
+            onblur="onMoveBlur(${i},${mi},this.value)"
+            onkeydown="onMoveKeydown(event,${i},${mi})"
+            autocorrect="off" autocapitalize="words" spellcheck="false"/>
+          <div class="move-suggestions" id="move-sugg-${i}-${mi}" style="display:none"></div>
+        </div>
         <button class="move-remove" onclick="removeMove(${i},${mi})">✕</button>
       </div>
     `;
@@ -1669,12 +1699,24 @@ function buildMemberCard(p, i) {
       <div class="member-header" onclick="toggleMember(${i})">
         <img class="member-sprite" src="${spriteUrl(p.id)}" alt="${p.name}"/>
         <div class="member-info">
-          <div class="member-name">${p.name}</div>
+          <div class="member-name">${p.nickname ? p.nickname.toUpperCase() : p.name}</div>
+          ${p.nickname ? `<div class="member-species">${p.name}</div>` : ''}
           <div class="member-types">${typeBadgesHtml}</div>
         </div>
         <div class="member-chevron ${es.open?'open':''}">▼</div>
       </div>
       <div class="member-body ${es.open?'open':''}">
+
+        <div class="ed-section">
+          <div class="ed-label">NICKNAME</div>
+          <input class="nickname-input" 
+            value="${p.nickname || ''}"
+            placeholder="Enter nickname (optional)"
+            maxlength="12"
+            oninput="updateNickname(${i}, this.value)"
+            onblur="updateNickname(${i}, this.value)"
+            autocorrect="off" autocapitalize="characters" spellcheck="false"/>
+        </div>
 
         <div class="ed-section">
           <div class="ed-label">SWAP POKÉMON</div>
@@ -1851,6 +1893,116 @@ function removeMove(slotIdx, moveIdx) {
 }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────
+// ─── NICKNAME ────────────────────────────────────────────────
+function updateNickname(slotIdx, val) {
+  const trimmed = val.trim();
+  team[slotIdx].nickname = trimmed || null;
+  saveTeam();
+  // Update header display without full re-render
+  const card = document.getElementById('mc-' + slotIdx);
+  if (card) {
+    const nameEl = card.querySelector('.member-name');
+    const specEl = card.querySelector('.member-species');
+    if (nameEl) nameEl.textContent = trimmed ? trimmed.toUpperCase() : team[slotIdx].name;
+    if (trimmed && !specEl) {
+      const info = card.querySelector('.member-info');
+      if (info) {
+        const sp = document.createElement('div');
+        sp.className = 'member-species';
+        sp.textContent = team[slotIdx].name;
+        info.insertBefore(sp, info.children[1]);
+      }
+    } else if (!trimmed && specEl) {
+      specEl.remove();
+    } else if (specEl) {
+      specEl.textContent = team[slotIdx].name;
+    }
+  }
+}
+
+// ─── MOVE AUTOCOMPLETE ────────────────────────────────────────
+let moveSearchTimer = null;
+let activeSuggestion = { slot: -1, move: -1 };
+
+async function onMoveInput(slotIdx, moveIdx, val) {
+  previewMoveDot(slotIdx, moveIdx, val);
+  clearTimeout(moveSearchTimer);
+  const sugg = document.getElementById('move-sugg-' + slotIdx + '-' + moveIdx);
+  if (!sugg) return;
+  if (val.trim().length < 2) { sugg.style.display = 'none'; return; }
+  moveSearchTimer = setTimeout(() => fetchMoveSuggestions(slotIdx, moveIdx, val), 300);
+}
+
+async function fetchMoveSuggestions(slotIdx, moveIdx, query) {
+  const sugg = document.getElementById('move-sugg-' + slotIdx + '-' + moveIdx);
+  if (!sugg) return;
+  const q = query.trim().toLowerCase().replace(/ /g, '-');
+  try {
+    if (!allMovesCache) {
+      const res = await fetch('https://pokeapi.co/api/v2/move?limit=1000');
+      if (!res.ok) return;
+      const data = await res.json();
+      allMovesCache = data.results;
+    }
+    const matches = allMovesCache
+      .filter(m => m.name.includes(q) || m.name.replace(/-/g,' ').includes(query.trim().toLowerCase()))
+      .slice(0, 6);
+    if (!matches || matches.length === 0) { sugg.style.display = 'none'; return; }
+    sugg.innerHTML = matches.map(m => {
+      const displayName = m.name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const cached = moveTypeCache[m.name] || getMoveType(displayName);
+      const dotColor = cached && cached !== '—' ? (TC[cached] || '#555') : 'rgba(255,255,255,0.15)';
+      const typeLabel = cached && cached !== '—' ? cached.toUpperCase() : '';
+      return `<div class="move-suggestion-item" 
+        onmousedown="event.preventDefault()"
+        onclick="selectMoveSuggestion(${slotIdx},${moveIdx},'${displayName}')">
+        <div class="move-sug-dot" style="background:${dotColor}"></div>
+        <span>${displayName}</span>
+        <span class="move-sug-type">${typeLabel}</span>
+      </div>`;
+    }).join('');
+    sugg.style.display = 'block';
+    activeSuggestion = { slot: slotIdx, move: moveIdx };
+  } catch(e) {
+    sugg.style.display = 'none';
+  }
+}
+
+function selectMoveSuggestion(slotIdx, moveIdx, moveName) {
+  const input = document.getElementById('move-input-' + slotIdx + '-' + moveIdx);
+  const sugg  = document.getElementById('move-sugg-' + slotIdx + '-' + moveIdx);
+  if (input) input.value = moveName;
+  if (sugg) sugg.style.display = 'none';
+  finalizeMove(slotIdx, moveIdx, moveName);
+}
+
+function onMoveBlur(slotIdx, moveIdx, val) {
+  // Small delay so click on suggestion registers first
+  setTimeout(() => {
+    const sugg = document.getElementById('move-sugg-' + slotIdx + '-' + moveIdx);
+    if (sugg) sugg.style.display = 'none';
+    finalizeMove(slotIdx, moveIdx, val);
+  }, 150);
+}
+
+function onMoveKeydown(event, slotIdx, moveIdx) {
+  if (event.key === 'Enter') { event.target.blur(); }
+  if (event.key === 'Escape') {
+    const sugg = document.getElementById('move-sugg-' + slotIdx + '-' + moveIdx);
+    if (sugg) sugg.style.display = 'none';
+  }
+}
+
+// Cache the full move list for faster autocomplete on repeat searches
+let allMovesCache = null;
+async function warmMoveListCache() {
+  try {
+    const res = await fetch('https://pokeapi.co/api/v2/move?limit=1000');
+    if (res.ok) { const d = await res.json(); allMovesCache = d.results; }
+  } catch(e) {}
+}
+setTimeout(warmMoveListCache, 2000);
+
 function saveTeam() {
   try {
     const key = 'team_' + (currentGame ? currentGame.id : 'emerald');
