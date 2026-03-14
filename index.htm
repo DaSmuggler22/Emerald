@@ -893,14 +893,12 @@ function getMoveType(moveName) {
   return null;
 }
 
-// Load move cache from localStorage
+// Load move cache from localStorage SYNCHRONOUSLY on script parse
 (function() {
-  setTimeout(() => {
-    try {
-      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
-      Object.assign(moveTypeCache, cached);
-    } catch(e) {}
-  }, 100);
+  try {
+    const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
+    Object.assign(moveTypeCache, cached);
+  } catch(e) {}
 })();
 
 // ─── GAME DEFINITIONS ────────────────────────────────────────
@@ -1328,6 +1326,8 @@ async function loadSavedTeam() {
   // Apply theme for current game and render selector
   applyGameTheme(currentGame);
   renderGameSelector();
+  // Update dots now that team and cache are both loaded
+  updateAllMoveDots();
 }
 
 function updateAllMoveDots() {
