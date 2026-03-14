@@ -597,6 +597,7 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
 </head>
 <body style="background:#060f0a;color:#e8f4ec;font-family:'Courier New',Courier,monospace;">
 <div id="bg-canvas"></div>
+<div id="cache-status" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(0,0,0,0.85);color:#4cff72;font-family:'Courier New',monospace;font-size:11px;padding:6px 12px;text-align:center;display:none;letter-spacing:1px;"></div>
 <div class="pokeball-deco"></div>
 <div class="container">
 
@@ -1330,15 +1331,16 @@ async function loadSavedTeam() {
 }
 
 function updateAllMoveDots() {
-  // Update dots in My Team editor
+  // Update dots in My Team editor - works on all open cards
   team.forEach((p, slotIdx) => {
     const card = document.getElementById('mc-' + slotIdx);
     if (!card) return;
-    const dots = card.querySelectorAll('.move-dot');
+    // Target dots by their id for reliability
     p.moves.forEach((m, moveIdx) => {
-      if (dots[moveIdx]) {
+      const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
+      if (dot) {
         const mt = getMoveType(m);
-        dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.1)';
+        dot.style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.1)';
       }
     });
   });
@@ -2070,52 +2072,65 @@ let allMovesCache = null;
 // Pre-fetch ALL move types for Gen 1-4 (moves 1-467) on first load
 // Fetches in small batches to avoid hammering the API
 async function preCacheAllMoves() {
+  const statusEl = document.getElementById('cache-status');
+  function setStatus(msg) { if(statusEl) { statusEl.textContent = msg; statusEl.style.display = 'block'; } }
+  function hideStatus() { if(statusEl) statusEl.style.display = 'none'; }
+
   try {
     // Check if already fully cached
     const cacheVersion = localStorage.getItem('emerald_full_cache_version');
     if (cacheVersion === '1') {
-      // Already fully cached - just load it
+      setStatus('LOADING MOVE CACHE...');
       const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
       Object.assign(moveTypeCache, cached);
       updateAllMoveDots();
+      setTimeout(hideStatus, 1000);
       return;
     }
 
     // Fetch all move names first
+    setStatus('FETCHING MOVE LIST...');
     const listRes = await fetch('https://pokeapi.co/api/v2/move?limit=500&offset=0');
-    if (!listRes.ok) return;
+    if (!listRes.ok) { setStatus('ERROR: Could not fetch move list'); return; }
     const listData = await listRes.json();
     allMovesCache = listData.results;
+    const total = listData.results.length;
+    setStatus(`CACHING ${total} MOVES... 0%`);
 
     // Fetch types for all moves in parallel batches of 20
     const moves = listData.results;
     const batchSize = 20;
+    let done = 0;
     for (let i = 0; i < moves.length; i += batchSize) {
       const batch = moves.slice(i, i + batchSize);
       await Promise.all(batch.map(async m => {
-        if (moveTypeCache[m.name]) return; // already cached
+        if (moveTypeCache[m.name]) { done++; return; }
         try {
           const r = await fetch(`https://pokeapi.co/api/v2/move/${m.name}`);
-          if (!r.ok) return;
+          if (!r.ok) { done++; return; }
           const d = await r.json();
           const type = (d.power && d.power > 0) ? d.type.name : '—';
           moveTypeCache[m.name] = type;
-        } catch(e) {}
+          done++;
+        } catch(e) { done++; }
       }));
-      // Small delay between batches to be respectful to the API
+      const pct = Math.round((done/total)*100);
+      setStatus(`CACHING MOVES... ${done}/${total} (${pct}%)`);
       await new Promise(r => setTimeout(r, 50));
+      updateAllMoveDots();
     }
 
     // Save entire cache to localStorage
     try {
       localStorage.setItem('emerald_move_cache', JSON.stringify(moveTypeCache));
       localStorage.setItem('emerald_full_cache_version', '1');
-    } catch(e) {}
+    } catch(e) { setStatus('ERROR: localStorage full - ' + e.message); return; }
 
-    // Update dots now that everything is cached
+    setStatus('✓ ALL MOVES CACHED!');
     updateAllMoveDots();
+    setTimeout(hideStatus, 2000);
 
-  } catch(e) {}
+  } catch(e) { setStatus('ERROR: ' + e.message); }
 }
 
 // Start pre-caching after a short delay so page loads first
