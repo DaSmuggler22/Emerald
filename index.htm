@@ -27,6 +27,24 @@
   --pixel: 2px;
 }
 
+/* ── GAME SELECTOR ── */
+.game-selector {
+display: flex; gap: 6px; flex-wrap: wrap;
+justify-content: center; margin-bottom: 14px;
+}
+.game-btn {
+-webkit-appearance: none; appearance: none;
+border-radius: 6px; padding: 6px 10px;
+font-family: ‘Courier New’, Courier, monospace;
+font-size: 9px; font-weight: bold; letter-spacing: 1px;
+cursor: pointer; border: 2px solid transparent;
+transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+line-height: 1.4; text-align: center;
+}
+.game-btn.active { border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.game-btn.inactive { opacity: 0.5; filter: grayscale(0.3); }
+.game-btn:active { transform: scale(0.95); }
+
 - { box-sizing: border-box; margin: 0; padding: 0; }
 
 button, input, select, textarea {
@@ -51,28 +69,93 @@ overflow-x: hidden;
 position: relative;
 }
 
-/* Animated background grid */
-body::before {
+/* ── BACKGROUND LAYER ── */
+#bg-canvas {
+position: fixed; inset: 0; z-index: 0;
+pointer-events: none; overflow: hidden;
+}
+#bg-canvas .bg-layer {
+position: absolute; inset: 0;
+transition: opacity 1.2s ease;
+}
+
+/* Scanlines - always on top */
+body::after {
 content: ‘’;
 position: fixed; inset: 0;
-background-image:
-linear-gradient(rgba(0,168,107,0.04) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,168,107,0.04) 1px, transparent 1px);
-background-size: 32px 32px;
-animation: gridScroll 20s linear infinite;
-pointer-events: none; z-index: 0;
+background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px);
+pointer-events: none; z-index: 1;
 }
+
+/* ── GAME-SPECIFIC ANIMATIONS ── */
+
+/* Emerald - scrolling grid */
 @keyframes gridScroll {
 0%   { background-position: 0 0; }
 100% { background-position: 32px 32px; }
 }
+@keyframes gridScrollFast {
+0%   { background-position: 0 0; }
+100% { background-position: 48px 48px; }
+}
 
-/* Scanlines */
-body::after {
-content: ‘’;
-position: fixed; inset: 0;
-background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px);
-pointer-events: none; z-index: 1;
+/* Red/Blue - horizontal scanline sweep */
+@keyframes scanSweep {
+0%   { transform: translateY(-100%); }
+100% { transform: translateY(100vh); }
+}
+
+/* Yellow - lightning flicker */
+@keyframes lightningFlicker {
+0%,94%,96%,100% { opacity: 0; }
+95% { opacity: 0.15; }
+}
+
+/* Gold/Silver - shimmer sweep */
+@keyframes shimmerSweep {
+0%   { transform: translateX(-100%) rotate(20deg); }
+100% { transform: translateX(200%) rotate(20deg); }
+}
+
+/* FireRed - ember float */
+@keyframes emberRise {
+0%   { transform: translateY(100vh) translateX(0px) scale(1); opacity: 0; }
+10%  { opacity: 0.8; }
+90%  { opacity: 0.4; }
+100% { transform: translateY(-20px) translateX(40px) scale(0.3); opacity: 0; }
+}
+@keyframes emberRise2 {
+0%   { transform: translateY(100vh) translateX(0px) scale(0.8); opacity: 0; }
+10%  { opacity: 0.6; }
+90%  { opacity: 0.3; }
+100% { transform: translateY(-20px) translateX(-30px) scale(0.2); opacity: 0; }
+}
+
+/* Diamond/Pearl - snow drift */
+@keyframes snowDrift {
+0%   { transform: translateY(-10px) translateX(0px); opacity: 0; }
+10%  { opacity: 0.7; }
+90%  { opacity: 0.4; }
+100% { transform: translateY(100vh) translateX(20px); opacity: 0; }
+}
+@keyframes snowDrift2 {
+0%   { transform: translateY(-10px) translateX(0px); opacity: 0; }
+10%  { opacity: 0.5; }
+100% { transform: translateY(100vh) translateX(-15px); opacity: 0; }
+}
+
+/* Pulse glow for all games */
+@keyframes bgPulse {
+0%,100% { opacity: 0.4; }
+50%      { opacity: 0.7; }
+}
+@keyframes bgPulse2 {
+0%,100% { opacity: 0.2; }
+50%      { opacity: 0.5; }
+}
+@keyframes rotateSlow {
+0%   { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
 }
 
 .container {
@@ -488,6 +571,7 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
 
 </head>
 <body style="background:#060f0a;color:#e8f4ec;font-family:'Courier New',Courier,monospace;">
+<div id="bg-canvas"></div>
 <div class="pokeball-deco"></div>
 <div class="container">
 
@@ -499,12 +583,16 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
       <div class="header-title">TEAM ADVISOR</div>
       <div class="gem"></div>
     </div>
-    <div class="header-sub">POKÉMON EMERALD</div>
-    <div class="header-version">HOENN REGION</div>
+    <div class="header-sub" id="gameTitle">POKÉMON EMERALD</div>
+    <div class="header-version" id="gameRegion">HOENN REGION</div>
     <div style="margin-top:8px">
       <button onclick="location.reload()" style="-webkit-appearance:none;appearance:none;background:transparent;border:1px solid #1a4028;border-radius:3px;color:#4a6a54;font-family:'Courier New',Courier,monospace;font-size:10px;padding:4px 12px;cursor:pointer;letter-spacing:1px;">↺ REFRESH</button>
     </div>
   </div>
+
+  <!-- GAME SELECTOR -->
+
+  <div class="game-selector" id="gameSelector"></div>
 
   <div class="divider"></div>
 
@@ -681,6 +769,16 @@ const MOVE_ALIASES = {
 
 // Dynamic move type cache - fetched from PokeAPI
 const moveTypeCache = {};
+const MOVE_CACHE_VERSION = '2'; // bump this to invalidate old cache
+(function() {
+  try {
+    const v = localStorage.getItem('emerald_move_cache_version');
+    if (v !== MOVE_CACHE_VERSION) {
+      localStorage.removeItem('emerald_move_cache');
+      localStorage.setItem('emerald_move_cache_version', MOVE_CACHE_VERSION);
+    }
+  } catch(e) {}
+})();
 
 async function fetchMoveType(moveName) {
   const normalized = moveName.trim().toLowerCase();
@@ -736,7 +834,8 @@ async function fetchMoveType(moveName) {
       const res = await fetch('https://pokeapi.co/api/v2/move/' + slug);
       if (!res.ok) continue;
       const data = await res.json();
-      const type = data.type.name;
+      // If move has no power it's a status move — treat as "—" for damage purposes
+      const type = (data.power && data.power > 0) ? data.type.name : '—';
       // Cache under both the original key and the working slug
       moveTypeCache[dashKey] = type;
       moveTypeCache[slug] = type;
@@ -776,6 +875,276 @@ function getMoveType(moveName) {
     } catch(e) {}
   }, 100);
 })();
+
+// ─── GAME DEFINITIONS ────────────────────────────────────────
+const GAMES = [
+  {
+    id: 'rb',
+    label: 'R/B',
+    title: 'POKÉMON RED/BLUE',
+    region: 'KANTO REGION',
+    accent: '#cc0000', bg: '#0a0000', panel: '#1a0000', panel2: '#200000',
+    border: '#3a0000', gold: '#ff8800', gray: '#6a3a3a', white: '#fff0f0',
+    gem: '#ff4444',
+    defaultTeam: [
+      {name:"Charmander",id:4,types:["fire"],moves:["Scratch","Growl"],color:"#e8400c"},
+      {name:"Pidgey",id:16,types:["normal","flying"],moves:["Tackle","Sand Attack","Gust"],color:"#9099A1"},
+      {name:"Rattata",id:19,types:["normal"],moves:["Tackle","Tail Whip"],color:"#9099A1"},
+      {name:"Pikachu",id:25,types:["electric"],moves:["Thunder Shock","Growl"],color:"#f8d030"},
+      {name:"Geodude",id:74,types:["rock","ground"],moves:["Tackle","Defense Curl"],color:"#A38C21"},
+      {name:"Gastly",id:92,types:["ghost","poison"],moves:["Lick","Spite"],color:"#6e4570"},
+    ]
+  },
+  {
+    id: 'yellow',
+    label: 'YELLOW',
+    title: 'POKÉMON YELLOW',
+    region: 'KANTO REGION',
+    accent: '#f8d030', bg: '#0a0900', panel: '#1a1800', panel2: '#201e00',
+    border: '#3a3600', gold: '#f8d030', gray: '#6a6030', white: '#fffff0',
+    gem: '#f8d030',
+    defaultTeam: [
+      {name:"Pikachu",id:25,types:["electric"],moves:["Thunder Shock","Growl","Tail Whip","Quick Attack"],color:"#f8d030"},
+      {name:"Pidgey",id:16,types:["normal","flying"],moves:["Tackle","Sand Attack","Gust"],color:"#9099A1"},
+      {name:"Bulbasaur",id:1,types:["grass","poison"],moves:["Tackle","Growl","Leech Seed"],color:"#3fa129"},
+      {name:"Charmander",id:4,types:["fire"],moves:["Scratch","Growl","Ember"],color:"#e8400c"},
+      {name:"Squirtle",id:7,types:["water"],moves:["Tackle","Tail Whip","Bubble"],color:"#3892DC"},
+      {name:"Eevee",id:133,types:["normal"],moves:["Tackle","Tail Whip","Sand Attack"],color:"#c89a20"},
+    ]
+  },
+  {
+    id: 'gs',
+    label: 'G/S',
+    title: 'POKÉMON GOLD/SILVER',
+    region: 'JOHTO REGION',
+    accent: '#c8a020', bg: '#080800', panel: '#181600', panel2: '#1e1c00',
+    border: '#383400', gold: '#c8a020', gray: '#605830', white: '#fffff0',
+    gem: '#ffd700',
+    defaultTeam: [
+      {name:"Cyndaquil",id:155,types:["fire"],moves:["Tackle","Leer","Smokescreen"],color:"#e8400c"},
+      {name:"Sentret",id:161,types:["normal"],moves:["Scratch","Foresight","Defense Curl"],color:"#9099A1"},
+      {name:"Hoothoot",id:163,types:["normal","flying"],moves:["Tackle","Growl","Foresight"],color:"#9099A1"},
+      {name:"Mareep",id:179,types:["electric"],moves:["Tackle","Growl","Thunder Shock"],color:"#f8d030"},
+      {name:"Bellsprout",id:69,types:["grass","poison"],moves:["Vine Whip","Growth","Wrap"],color:"#3fa129"},
+      {name:"Wooper",id:194,types:["water","ground"],moves:["Water Gun","Tail Whip"],color:"#3892DC"},
+    ]
+  },
+  {
+    id: 'frlg',
+    label: 'FR/LG',
+    title: 'POKÉMON FIRERED',
+    region: 'KANTO REGION',
+    accent: '#e84000', bg: '#0a0500', panel: '#1a0c00', panel2: '#201000',
+    border: '#3a1800', gold: '#ff9900', gray: '#6a4030', white: '#fff4f0',
+    gem: '#ff6633',
+    defaultTeam: [
+      {name:"Charmander",id:4,types:["fire"],moves:["Scratch","Growl","Ember"],color:"#e8400c"},
+      {name:"Pidgey",id:16,types:["normal","flying"],moves:["Tackle","Sand Attack","Gust"],color:"#9099A1"},
+      {name:"Rattata",id:19,types:["normal"],moves:["Tackle","Tail Whip","Quick Attack"],color:"#9099A1"},
+      {name:"Pikachu",id:25,types:["electric"],moves:["Thunder Shock","Growl","Quick Attack"],color:"#f8d030"},
+      {name:"Geodude",id:74,types:["rock","ground"],moves:["Tackle","Defense Curl","Rock Throw"],color:"#A38C21"},
+      {name:"Gastly",id:92,types:["ghost","poison"],moves:["Lick","Spite","Mean Look"],color:"#6e4570"},
+    ]
+  },
+  {
+    id: 'emerald',
+    label: 'EMERALD',
+    title: 'POKÉMON EMERALD',
+    region: 'HOENN REGION',
+    accent: '#00a86b', bg: '#060f0a', panel: '#0d2018', panel2: '#122818',
+    border: '#1a4028', gold: '#f0c040', gray: '#4a6a54', white: '#e8f4ec',
+    gem: '#00ff88',
+    defaultTeam: [
+      {name:"Kakuna",id:14,types:["bug","poison"],moves:["Harden"],color:"#93b11a"},
+      {name:"Charmander",id:4,types:["fire"],moves:["Scratch","Ember","Growl","Smokescreen"],color:"#e8400c"},
+      {name:"Slakoth",id:287,types:["normal"],moves:["Scratch","Yawn","Encore"],color:"#9099A1"},
+      {name:"Grovyle",id:253,types:["grass"],moves:["Pound","Leer","Absorb","Quick Attack"],color:"#3fa129"},
+      {name:"Pichu",id:172,types:["electric"],moves:["Thundershock","Charm","Sweet Kiss","Thunder Wave"],color:"#f8d030"},
+      {name:"Spearow",id:21,types:["normal","flying"],moves:["Peck","Growl","Leer"],color:"#81B9EF"},
+    ]
+  },
+  {
+    id: 'dp',
+    label: 'D/P',
+    title: 'POKÉMON DIAMOND',
+    region: 'SINNOH REGION',
+    accent: '#4488ff', bg: '#00050f', panel: '#000d1a', panel2: '#001020',
+    border: '#001830', gold: '#88aaff', gray: '#304860', white: '#e8f0ff',
+    gem: '#66aaff',
+    defaultTeam: [
+      {name:"Turtwig",id:387,types:["grass"],moves:["Tackle","Withdraw","Absorb"],color:"#3fa129"},
+      {name:"Starly",id:396,types:["normal","flying"],moves:["Tackle","Growl","Quick Attack"],color:"#9099A1"},
+      {name:"Bidoof",id:399,types:["normal"],moves:["Tackle","Growl","Defense Curl"],color:"#9099A1"},
+      {name:"Shinx",id:403,types:["electric"],moves:["Tackle","Leer","Charge"],color:"#f8d030"},
+      {name:"Geodude",id:74,types:["rock","ground"],moves:["Tackle","Defense Curl","Rock Throw"],color:"#A38C21"},
+      {name:"Gastly",id:92,types:["ghost","poison"],moves:["Lick","Spite","Mean Look"],color:"#6e4570"},
+    ]
+  },
+];
+
+let currentGame = GAMES.find(g => g.id === 'emerald');
+
+function renderBackground(game) {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+
+  const bg = game.bg;
+  const ac = game.accent;
+  const go = game.gold;
+
+  const backgrounds = {
+    rb: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 20% 20%, rgba(180,0,0,0.18) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(100,0,0,0.15) 0%, transparent 60%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(200,0,0,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(200,0,0,0.05) 1px,transparent 1px);background-size:24px 24px;animation:gridScroll 15s linear infinite"></div>
+      <div class="bg-layer" style="background:linear-gradient(180deg,rgba(200,0,0,0.08) 0px,transparent 3px);background-size:100% 6px;animation:scanSweep 8s linear infinite;opacity:0.4"></div>
+      <div class="bg-layer" style="background:radial-gradient(circle at 50% 50%, rgba(200,0,0,0.06) 0%, transparent 70%);animation:bgPulse 4s ease-in-out infinite"></div>`,
+
+    yellow: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 50% 30%, rgba(255,220,0,0.12) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(255,180,0,0.08) 0%, transparent 50%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(255,220,0,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,220,0,0.04) 1px,transparent 1px);background-size:20px 20px;animation:gridScroll 25s linear infinite"></div>
+      <div class="bg-layer" style="background:radial-gradient(ellipse 200px 200px at 50% 50%, rgba(255,220,0,0.07) 0%, transparent 100%);animation:bgPulse 2s ease-in-out infinite"></div>
+      <div class="bg-layer" style="animation:lightningFlicker 5s linear infinite;background:linear-gradient(135deg,transparent 40%,rgba(255,255,100,0.4) 50%,transparent 60%)"></div>
+      <div class="bg-layer" style="animation:lightningFlicker 7s linear 2s infinite;background:linear-gradient(45deg,transparent 45%,rgba(255,255,100,0.3) 50%,transparent 55%)"></div>`,
+
+    gs: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 30% 40%, rgba(200,160,0,0.12) 0%, transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(160,160,180,0.1) 0%, transparent 55%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(200,160,0,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,160,0,0.04) 1px,transparent 1px);background-size:28px 28px;animation:gridScroll 30s linear infinite"></div>
+      <div class="bg-layer" style="background:linear-gradient(120deg,transparent 30%,rgba(220,180,60,0.06) 50%,transparent 70%);width:200%;animation:shimmerSweep 6s ease-in-out infinite"></div>
+      <div class="bg-layer" style="background:linear-gradient(120deg,transparent 30%,rgba(180,180,200,0.05) 50%,transparent 70%);width:200%;animation:shimmerSweep 9s ease-in-out 3s infinite"></div>`,
+
+    frlg: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 40% 60%, rgba(220,80,0,0.18) 0%, transparent 55%), radial-gradient(ellipse at 70% 20%, rgba(180,40,0,0.12) 0%, transparent 50%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(220,80,0,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(220,80,0,0.05) 1px,transparent 1px);background-size:32px 32px;animation:gridScroll 18s linear infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:15%;width:4px;height:4px;border-radius:50%;background:rgba(255,140,0,0.7);animation:emberRise 4s ease-in infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:35%;width:3px;height:3px;border-radius:50%;background:rgba(255,100,0,0.6);animation:emberRise2 5s ease-in 1s infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:55%;width:5px;height:5px;border-radius:50%;background:rgba(255,160,0,0.5);animation:emberRise 6s ease-in 2s infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:75%;width:3px;height:3px;border-radius:50%;background:rgba(255,80,0,0.7);animation:emberRise2 4.5s ease-in 0.5s infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:25%;width:4px;height:4px;border-radius:50%;background:rgba(255,120,0,0.6);animation:emberRise 5.5s ease-in 3s infinite"></div>
+      <div class="bg-layer" style="position:absolute;bottom:0;left:85%;width:2px;height:2px;border-radius:50%;background:rgba(255,200,0,0.8);animation:emberRise2 3.5s ease-in 1.5s infinite"></div>`,
+
+    emerald: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 30% 30%, rgba(0,168,107,0.12) 0%, transparent 55%), radial-gradient(ellipse at 70% 70%, rgba(0,100,60,0.1) 0%, transparent 55%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(0,168,107,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,168,107,0.04) 1px,transparent 1px);background-size:32px 32px;animation:gridScroll 20s linear infinite"></div>
+      <div class="bg-layer" style="background:radial-gradient(circle at 50% 50%, rgba(0,255,136,0.04) 0%, transparent 60%);animation:bgPulse 3s ease-in-out infinite"></div>
+      <div class="bg-layer" style="background:conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(0,168,107,0.03) 60deg, transparent 120deg);animation:rotateSlow 40s linear infinite"></div>`,
+
+    dp: `
+      <div class="bg-layer" style="background:radial-gradient(ellipse at 50% 20%, rgba(60,120,255,0.15) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(100,60,200,0.1) 0%, transparent 50%), ${bg}"></div>
+      <div class="bg-layer" style="background-image:linear-gradient(rgba(80,140,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(80,140,255,0.04) 1px,transparent 1px);background-size:36px 36px;animation:gridScrollFast 25s linear infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:5%;left:20%;width:3px;height:3px;border-radius:50%;background:rgba(200,230,255,0.8);animation:snowDrift 6s linear infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:0%;left:50%;width:2px;height:2px;border-radius:50%;background:rgba(180,220,255,0.6);animation:snowDrift2 8s linear 1s infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:10%;left:70%;width:4px;height:4px;border-radius:50%;background:rgba(220,240,255,0.5);animation:snowDrift 10s linear 2s infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:3%;left:40%;width:2px;height:2px;border-radius:50%;background:rgba(200,230,255,0.7);animation:snowDrift2 7s linear 3s infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:8%;left:85%;width:3px;height:3px;border-radius:50%;background:rgba(180,210,255,0.6);animation:snowDrift 9s linear 0.5s infinite"></div>
+      <div class="bg-layer" style="position:absolute;top:2%;left:10%;width:2px;height:2px;border-radius:50%;background:rgba(220,240,255,0.8);animation:snowDrift2 5s linear 4s infinite"></div>
+      <div class="bg-layer" style="background:radial-gradient(circle at 50% 50%, rgba(60,120,255,0.05) 0%, transparent 60%);animation:bgPulse 5s ease-in-out infinite"></div>`,
+  };
+
+  canvas.innerHTML = backgrounds[game.id] || backgrounds.emerald;
+  document.body.style.background = game.bg;
+}
+
+function applyGameTheme(game) {
+  renderBackground(game);
+  // Update CSS custom properties dynamically
+  const root = document.documentElement;
+  root.style.setProperty('--game-accent', game.accent);
+  root.style.setProperty('--game-bg', game.bg);
+  root.style.setProperty('--game-panel', game.panel);
+  root.style.setProperty('--game-panel2', game.panel2);
+  root.style.setProperty('--game-border', game.border);
+  root.style.setProperty('--game-gold', game.gold);
+  root.style.setProperty('--game-gray', game.gray);
+  root.style.setProperty('--game-white', game.white);
+
+  // Update all the hardcoded color elements
+  document.querySelectorAll('.member-card, .panel, .enemy-card, .result-card, .catch-result, .swap-suggestion').forEach(el => {
+    el.style.background = game.panel2;
+    el.style.borderColor = game.border;
+  });
+  document.querySelectorAll('.tabs').forEach(el => {
+    el.style.background = game.panel;
+    el.style.borderColor = game.border;
+  });
+
+  // Update title
+  const titleEl = document.getElementById('gameTitle');
+  const regionEl = document.getElementById('gameRegion');
+  if (titleEl) titleEl.textContent = game.title;
+  if (regionEl) regionEl.textContent = game.region;
+  titleEl.style.color = game.accent;
+
+  // Update gem colors
+  document.querySelectorAll('.gem').forEach(gem => {
+    gem.style.background = `linear-gradient(135deg, ${game.gem}, ${game.accent}, ${game.bg})`;
+    gem.style.filter = `drop-shadow(0 0 6px ${game.gem})`;
+  });
+
+  // Update active tab
+  document.querySelectorAll('.tab.active').forEach(t => {
+    t.style.background = game.accent;
+    t.style.borderColor = game.gold;
+  });
+
+  // Update divider
+  document.querySelectorAll('.divider').forEach(d => {
+    d.style.background = `linear-gradient(90deg, transparent, ${game.accent}, ${game.gold}, ${game.accent}, transparent)`;
+  });
+
+  // Re-render game selector
+  renderGameSelector();
+}
+
+function renderGameSelector() {
+  const el = document.getElementById('gameSelector');
+  if (!el) return;
+  el.innerHTML = GAMES.map(g => {
+    const isActive = g.id === currentGame.id;
+    return `<button class="game-btn ${isActive?'active':'inactive'}"
+      onclick="switchGame('${g.id}')"
+      style="-webkit-appearance:none;appearance:none;background:${g.panel2};color:${isActive?g.accent:g.gray};border-color:${isActive?g.accent:g.border};">
+      ${g.label}
+    </button>`;
+  }).join('');
+}
+
+function switchGame(gameId) {
+  if (gameId === currentGame.id) return;
+  // Save current team under current game key
+  saveTeam();
+  // Switch game
+  currentGame = GAMES.find(g => g.id === gameId);
+  // Load that game's team from storage, or use default
+  try {
+    const saved = localStorage.getItem('team_' + gameId);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length === 6) {
+        team = parsed;
+      } else {
+        team = JSON.parse(JSON.stringify(currentGame.defaultTeam));
+      }
+    } else {
+      team = JSON.parse(JSON.stringify(currentGame.defaultTeam));
+    }
+  } catch(e) {
+    team = JSON.parse(JSON.stringify(currentGame.defaultTeam));
+  }
+  editorState = team.map(() => ({
+    open:false, swapInput:'', swapPreview:null, swapError:'',
+    swapLoading:false, evoChain:null, evoLoading:false,
+  }));
+  // Save current game preference
+  try { localStorage.setItem('current_game', gameId); } catch(e) {}
+  // Apply theme and re-render
+  applyGameTheme(currentGame);
+  renderGameSelector();
+  if (document.getElementById('pane-team').style.display !== 'none') renderTeamEditor();
+  // Pre-fetch moves for new team
+  const allMoves = team.flatMap(p => p.moves).filter(m => m && m !== '—');
+  const uncached = [...new Set(allMoves)].filter(m => !getMoveType(m));
+  if (uncached.length > 0) Promise.all(uncached.map(m => fetchMoveType(m))).then(() => updateAllMoveDots());
+}
 
 const TYPE_CHART = {
   normal:   {rock:0.5,ghost:0,steel:0.5},
@@ -847,10 +1216,18 @@ async function loadSavedTeam() {
     const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
     Object.assign(moveTypeCache, cached);
 
-    // Load saved team
-    const saved = localStorage.getItem('emerald_team');
-    if (saved) {
-      const parsed = JSON.parse(saved);
+    // Restore last used game
+    const savedGameId = localStorage.getItem('current_game') || 'emerald';
+    const savedGame = GAMES.find(g => g.id === savedGameId);
+    if (savedGame) currentGame = savedGame;
+
+    // Load saved team for this game
+    const saved = localStorage.getItem('team_' + currentGame.id);
+    // Also check legacy key for emerald
+    const legacySaved = localStorage.getItem('emerald_team');
+    const toLoad = saved || (currentGame.id === 'emerald' ? legacySaved : null);
+    if (toLoad) {
+      const parsed = JSON.parse(toLoad);
       if (Array.isArray(parsed) && parsed.length === 6) {
         team = parsed;
         editorState = team.map(() => ({
@@ -866,14 +1243,13 @@ async function loadSavedTeam() {
   const uncached = [...new Set(allMoves)].filter(m => !getMoveType(m));
   if (uncached.length > 0) {
     await Promise.all(uncached.map(m => fetchMoveType(m)));
-    // Re-render team editor if it's open so dots update
     const teamPane = document.getElementById('pane-team');
-    if (teamPane && teamPane.style.display !== 'none') {
-      renderTeamEditor();
-    }
-    // Also update all move dots directly regardless of which pane is open
+    if (teamPane && teamPane.style.display !== 'none') renderTeamEditor();
     updateAllMoveDots();
   }
+  // Apply theme for current game and render selector
+  applyGameTheme(currentGame);
+  renderGameSelector();
 }
 
 function updateAllMoveDots() {
@@ -1029,10 +1405,29 @@ function renderBattle(enemy) {
     const isTop = i === 0 && p.offMult > 0;
     const r = getRating(p.offMult);
     const takesSuper = p.defMult >= 2;
-    const dmgMoves = p.moves.filter(m => {
-      const t = getMoveType(m);
-      return t && t !== '—';
-    });
+    // Sort damage moves by effectiveness against the enemy, best first
+    const dmgMoves = p.moves
+      .filter(m => { const t = getMoveType(m); return t && t !== '—'; })
+      .map(m => {
+        const t = getMoveType(m);
+        const eff = t ? getEff(t, enemy.types) : 0;
+        return { name: m, eff, type: t };
+      })
+      .sort((a, b) => b.eff - a.eff);
+
+    // Build move list with per-move effectiveness indicator
+    const moveDisplay = dmgMoves.map(mv => {
+      let indicator = '';
+      if (mv.eff >= 4)       indicator = '<span style="color:#ff4444;font-size:11px">4×</span> ';
+      else if (mv.eff >= 2)  indicator = '<span style="color:#4cff72;font-size:11px">2×</span> ';
+      else if (mv.eff > 0 && mv.eff < 1) indicator = '<span style="color:#ff9900;font-size:11px">½×</span> ';
+      else if (mv.eff === 0) indicator = '<span style="color:#555;font-size:11px">0×</span> ';
+      const dotColor = mv.type ? (TC[mv.type] || '#555') : '#555';
+      return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0">
+        <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+        <span>${indicator}${mv.name}</span>
+      </div>`;
+    }).join('');
 
     html += `
       <div class="result-card ${isTop?'best':p.offMult===0?'dimmed':''}">
@@ -1049,8 +1444,8 @@ function renderBattle(enemy) {
             </span>
             ${takesSuper ? `<span class="r-danger">⚠ takes ${p.defMult}× dmg</span>` : ''}
           </div>
-          ${dmgMoves.length && p.offMult>0 ? `<div class="r-moves">USE: ${dmgMoves.join(', ')}</div>` : ''}
-          ${!getAttackTypes(p.moves).length ? `<div class="r-moves" style="color:#555">NO DAMAGE MOVES</div>` : ''}
+          ${dmgMoves.length && p.offMult>0 ? `<div class="r-moves" style="margin-top:5px">${moveDisplay}</div>` : ''}
+          ${!getAttackTypes(p.moves, p.types).length ? `<div class="r-moves" style="color:#555">NO DAMAGE MOVES</div>` : ''}
         </div>
       </div>
     `;
@@ -1236,7 +1631,10 @@ function buildMemberCard(p, i) {
       const isCur  = e.id === p.id;
       const isNext = ei === curPos + 1;
       const cls = isCur ? 'current' : isNext ? 'available' : '';
-      const arrow = ei > 0 ? `<span class="evo-arrow">▶</span>` : '';
+      const arrow = ei > 0 ? `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+        <span class="evo-arrow">▶</span>
+        ${e.evoLabel ? `<span style="font-family:'Courier New',Courier,monospace;font-size:8px;color:${isNext?'#f0c040':'#4a6a54'};letter-spacing:0.5px;white-space:nowrap">${e.evoLabel}</span>` : ''}
+      </div>` : '';
       return `${arrow}<div class="evo-step ${cls}" onclick="evolveSlot(${i},${ei})">
         <img src="${spriteUrl(e.id)}" alt="${e.name}"/>
         <div class="evo-step-name">${e.name}</div>
@@ -1361,13 +1759,31 @@ async function loadEvoChain(i) {
     const evoRes   = await fetch(specData.evolution_chain.url);
     const evoData  = await evoRes.json();
     const chain = [];
-    async function walk(node) {
+    async function walk(node, evoDetails) {
       const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${node.species.name}`);
       const d = await r.json();
-      chain.push({ name: node.species.name, id: d.id });
-      for (const nx of node.evolves_to) await walk(nx);
+      // Parse how this stage evolves from the previous
+      let evoLabel = null;
+      if (evoDetails && evoDetails.length > 0) {
+        const det = evoDetails[0];
+        if (det.min_level) {
+          evoLabel = 'LV.' + det.min_level;
+        } else if (det.item) {
+          evoLabel = det.item.name.replace(/-/g,' ').toUpperCase();
+        } else if (det.trigger && det.trigger.name === 'trade') {
+          evoLabel = 'TRADE';
+        } else if (det.min_happiness) {
+          evoLabel = 'FRIENDSHIP';
+        } else if (det.known_move) {
+          evoLabel = 'MOVE';
+        } else {
+          evoLabel = det.trigger ? det.trigger.name.toUpperCase() : null;
+        }
+      }
+      chain.push({ name: node.species.name, id: d.id, evoLabel });
+      for (const nx of node.evolves_to) await walk(nx, nx.evolution_details);
     }
-    await walk(evoData.chain);
+    await walk(evoData.chain, null);
     editorState[i].evoChain = chain;
   } catch { editorState[i].evoChain = []; }
   editorState[i].evoLoading = false;
@@ -1437,9 +1853,9 @@ function removeMove(slotIdx, moveIdx) {
 // ─── PERSISTENCE ─────────────────────────────────────────────
 function saveTeam() {
   try {
-    localStorage.setItem('emerald_team', JSON.stringify(team));
-    console.log('Team saved. Moves:', team.map(p=>({name:p.name, moves:p.moves})));
-  } catch(e) { console.log('Save error:', e); }
+    const key = 'team_' + (currentGame ? currentGame.id : 'emerald');
+    localStorage.setItem(key, JSON.stringify(team));
+  } catch(e) {}
 }
 // Team loaded at init above
 function addMove(slotIdx) {
