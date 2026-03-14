@@ -681,19 +681,64 @@ const TC = {
 };
 
 const MOVE_TYPES = {
-  growl:"—",leer:"—",smokescreen:"—",yawn:"—",encore:"—",charm:"—",
-  "sweet kiss":"—","harden":"—","tail whip":"—","splash":"—",
-  "protect":"—","agility":"—","double team":"—","recover":"—",
-  "rest":"—","sleep talk":"—","safeguard":"—","baton pass":"—",
-  "mimic":"—","substitute":"—","swords dance":"—","amnesia":"—",
-  "thunder wave":"—","string shot":"—","poison powder":"—",
-  "stun spore":"—","sleep powder":"—","leech seed":"—","growth":"—",
-  "toxic":"—","disable":"—","foresight":"—","detect":"—",
-  "destiny bond":"—","perish song":"—","endure":"—","safeguard":"—",
-  "mean look":"—","attract":"—","heal bell":"—","pain split":"—",
-  "psych up":"—","rain dance":"—","sunny day":"—","sandstorm":"—",
-  "hail":"—","cotton spore":"—","scary face":"—","screech":"—",
-  "glare":"—","hypnosis":"—","spore":"—","flash":"—",
+  "pound":"normal","karate-chop":"fighting","double-slap":"normal","comet-punch":"normal","mega-punch":"normal","pay-day":"normal","fire-punch":"fire","ice-punch":"ice",
+  "thunder-punch":"electric","scratch":"normal","vice-grip":"normal","guillotine":"normal","razor-wind":"normal","swords-dance":"—","cut":"normal","gust":"flying",
+  "wing-attack":"flying","whirlwind":"—","fly":"flying","bind":"normal","slam":"normal","vine-whip":"grass","stomp":"normal","double-kick":"fighting",
+  "mega-kick":"normal","jump-kick":"fighting","rolling-kick":"fighting","sand-attack":"—","headbutt":"normal","horn-attack":"normal","fury-attack":"normal","horn-drill":"normal",
+  "tackle":"normal","body-slam":"normal","wrap":"normal","take-down":"normal","thrash":"normal","double-edge":"normal","tail-whip":"—","poison-sting":"poison",
+  "twineedle":"bug","pin-missile":"bug","leer":"—","bite":"dark","growl":"—","roar":"—","sing":"—","supersonic":"—",
+  "sonic-boom":"normal","disable":"—","acid":"poison","ember":"fire","flamethrower":"fire","mist":"—","water-gun":"water","hydro-pump":"water",
+  "surf":"water","ice-beam":"ice","blizzard":"ice","psybeam":"psychic","bubble-beam":"water","aurora-beam":"ice","hyper-beam":"normal","peck":"flying",
+  "drill-peck":"flying","submission":"fighting","low-kick":"fighting","counter":"fighting","seismic-toss":"normal","strength":"normal","absorb":"grass","mega-drain":"grass",
+  "leech-seed":"—","growth":"—","razor-leaf":"grass","solar-beam":"grass","poison-powder":"—","stun-spore":"—","sleep-powder":"—","petal-dance":"grass",
+  "string-shot":"—","dragon-rage":"dragon","fire-spin":"fire","thunder-shock":"electric","thunderbolt":"electric","thunder-wave":"—","thunder":"electric","rock-throw":"rock",
+  "earthquake":"ground","fissure":"ground","dig":"ground","toxic":"—","confusion":"psychic","psychic":"psychic","hypnosis":"—","meditate":"—",
+  "agility":"—","quick-attack":"normal","rage":"normal","teleport":"—","night-shade":"ghost","mimic":"—","screech":"—","double-team":"—",
+  "recover":"—","harden":"—","minimize":"—","smokescreen":"—","confuse-ray":"—","withdraw":"—","defense-curl":"—","barrier":"—",
+  "light-screen":"—","haze":"—","reflect":"—","focus-energy":"—","bide":"normal","metronome":"normal","mirror-move":"flying","self-destruct":"normal",
+  "egg-bomb":"normal","lick":"ghost","smog":"poison","sludge":"poison","bone-club":"ground","fire-blast":"fire","waterfall":"water","clamp":"water",
+  "swift":"normal","skull-bash":"normal","spike-cannon":"normal","constrict":"normal","amnesia":"—","kinesis":"—","soft-boiled":"—","high-jump-kick":"fighting",
+  "glare":"—","dream-eater":"psychic","poison-gas":"—","barrage":"normal","leech-life":"bug","lovely-kiss":"—","sky-attack":"flying","transform":"—",
+  "bubble":"water","dizzy-punch":"normal","spore":"—","flash":"—","psywave":"psychic","splash":"—","acid-armor":"—","crabhammer":"water",
+  "explosion":"normal","fury-swipes":"normal","bonemerang":"ground","rest":"—","rock-slide":"rock","hyper-fang":"normal","sharpen":"—","conversion":"—",
+  "tri-attack":"normal","super-fang":"normal","slash":"normal","substitute":"—","struggle":"normal","sketch":"normal","triple-kick":"fighting","thief":"dark",
+  "spider-web":"—","mind-reader":"—","nightmare":"—","flame-wheel":"fire","snore":"normal","curse":"—","flail":"normal","conversion-2":"—",
+  "aeroblast":"flying","cotton-spore":"—","reversal":"fighting","spite":"—","powder-snow":"ice","protect":"—","mach-punch":"fighting","scary-face":"—",
+  "feint-attack":"dark","faint-attack":"dark","sweet-kiss":"—","belly-drum":"—","sludge-bomb":"poison","mud-slap":"ground","octazooka":"water","spikes":"—","zap-cannon":"electric",
+  "foresight":"—","destiny-bond":"—","perish-song":"—","icy-wind":"ice","detect":"—","bone-rush":"ground","lock-on":"—","outrage":"dragon",
+  "sandstorm":"—","giga-drain":"grass","endure":"—","charm":"—","rollout":"rock","false-swipe":"normal","swagger":"—","milk-drink":"—",
+  "spark":"electric","fury-cutter":"bug","steel-wing":"steel","mean-look":"—","attract":"—","sleep-talk":"—","heal-bell":"—","return":"normal",
+  "present":"normal","frustration":"normal","safeguard":"—","pain-split":"—","sacred-fire":"fire","magnitude":"ground","dynamic-punch":"fighting","megahorn":"bug",
+  "dragon-breath":"dragon","baton-pass":"—","encore":"—","pursuit":"dark","rapid-spin":"normal","sweet-scent":"—","iron-tail":"steel","metal-claw":"steel",
+  "vital-throw":"fighting","morning-sun":"—","synthesis":"—","moonlight":"—","hidden-power":"normal","cross-chop":"fighting","twister":"dragon","rain-dance":"—",
+  "sunny-day":"—","crunch":"dark","mirror-coat":"psychic","psych-up":"—","extreme-speed":"normal","ancient-power":"rock","shadow-ball":"ghost","future-sight":"psychic",
+  "rock-smash":"fighting","whirlpool":"water","beat-up":"dark","fake-out":"normal","uproar":"normal","stockpile":"—","spit-up":"normal","swallow":"—",
+  "heat-wave":"fire","hail":"—","torment":"—","flatter":"—","will-o-wisp":"—","memento":"—","facade":"normal","focus-punch":"fighting",
+  "smelling-salts":"normal","follow-me":"—","nature-power":"normal","charge":"—","taunt":"—","helping-hand":"—","trick":"—","role-play":"—",
+  "wish":"—","assist":"normal","ingrain":"—","superpower":"fighting","magic-coat":"—","recycle":"—","revenge":"fighting","brick-break":"fighting",
+  "yawn":"—","knock-off":"dark","endeavor":"normal","eruption":"fire","skill-swap":"—","imprison":"—","refresh":"—","grudge":"—",
+  "snatch":"—","secret-power":"normal","dive":"water","arm-thrust":"fighting","camouflage":"—","tail-glow":"—","luster-purge":"psychic","mist-ball":"psychic",
+  "feather-dance":"—","teeter-dance":"—","blaze-kick":"fire","mud-sport":"—","ice-ball":"ice","needle-arm":"grass","slack-off":"—","hyper-voice":"normal",
+  "poison-fang":"poison","crush-claw":"normal","blast-burn":"fire","hydro-cannon":"water","meteor-mash":"steel","astonish":"ghost","weather-ball":"normal","aromatherapy":"—",
+  "fake-tears":"—","air-cutter":"flying","overheat":"fire","odor-sleuth":"—","rock-tomb":"rock","silver-wind":"bug","metal-sound":"—","grass-whistle":"—",
+  "tickle":"—","cosmic-power":"—","water-spout":"water","signal-beam":"bug","shadow-punch":"ghost","extrasensory":"psychic","sky-uppercut":"fighting","sand-tomb":"ground",
+  "sheer-cold":"ice","muddy-water":"water","bullet-seed":"grass","aerial-ace":"flying","icicle-spear":"ice","iron-defense":"—","block":"—","howl":"—",
+  "dragon-claw":"dragon","frenzy-plant":"grass","bulk-up":"—","bounce":"flying","mud-shot":"ground","poison-tail":"poison","covet":"normal","volt-tackle":"electric",
+  "magical-leaf":"grass","water-sport":"—","calm-mind":"—","leaf-blade":"grass","dragon-dance":"—","rock-blast":"rock","shock-wave":"electric","water-pulse":"water",
+  "doom-desire":"steel","psycho-boost":"psychic","feint":"normal","pluck":"flying","tailwind":"—","acupressure":"—","metal-burst":"steel","u-turn":"bug",
+  "close-combat":"fighting","payback":"dark","assurance":"dark","embargo":"—","fling":"dark","psycho-shift":"—","trump-card":"normal","heal-block":"—",
+  "wring-out":"normal","power-trick":"—","gastro-acid":"—","lucky-chant":"—","me-first":"normal","copycat":"normal","power-swap":"—","guard-swap":"—",
+  "punishment":"dark","last-resort":"normal","worry-seed":"—","sucker-punch":"dark","toxic-spikes":"—","heart-swap":"—","aqua-ring":"—","magnet-rise":"—",
+  "flare-blitz":"fire","force-palm":"fighting","aura-sphere":"fighting","rock-polish":"—","poison-jab":"poison","dark-pulse":"dark","night-slash":"dark","aqua-tail":"water",
+  "seed-bomb":"grass","air-slash":"flying","x-scissor":"bug","bug-buzz":"bug","dragon-pulse":"dragon","dragon-rush":"dragon","power-gem":"rock","drain-punch":"fighting",
+  "vacuum-wave":"fighting","focus-blast":"fighting","energy-ball":"grass","brave-bird":"flying","earth-power":"ground","switcheroo":"—","giga-impact":"normal","nasty-plot":"—",
+  "bullet-punch":"steel","avalanche":"ice","ice-shard":"ice","shadow-claw":"ghost","thunder-fang":"electric","ice-fang":"ice","fire-fang":"fire","shadow-sneak":"ghost",
+  "mud-bomb":"ground","psycho-cut":"psychic","zen-headbutt":"psychic","mirror-shot":"steel","flash-cannon":"steel","rock-climb":"normal","defog":"—","trick-room":"—",
+  "draco-meteor":"dragon","discharge":"electric","lava-plume":"fire","leaf-storm":"grass","power-whip":"grass","rock-wrecker":"rock","cross-poison":"poison","gunk-shot":"poison",
+  "iron-head":"steel","magnet-bomb":"steel","stone-edge":"rock","captivate":"—","stealth-rock":"—","grass-knot":"grass","chatter":"flying","judgment":"normal",
+  "bug-bite":"bug","charge-beam":"electric","wood-hammer":"grass","aqua-jet":"water","attack-order":"bug","defend-order":"—","heal-order":"—","head-smash":"rock",
+  "double-hit":"normal","roar-of-time":"dragon","spacial-rend":"dragon","lunar-dance":"—","crush-grip":"normal","magma-storm":"fire","dark-void":"—","seed-flare":"grass",
+  "ominous-wind":"ghost","shadow-force":"ghost",
 };
 
 // Aliases for moves whose in-game names differ from PokeAPI slug
@@ -882,14 +927,12 @@ function getMoveType(moveName) {
   if (!moveName || moveName === '—') return '—';
   const key = moveName.trim().toLowerCase();
   const dashKey = key.replace(/ /g, '-');
-  const aliasKey = MOVE_ALIASES[key] || dashKey;
-  // Check static dict first
+  // Check hardcoded dict (space and dash variants)
   if (MOVE_TYPES[key] !== undefined) return MOVE_TYPES[key];
   if (MOVE_TYPES[dashKey] !== undefined) return MOVE_TYPES[dashKey];
-  // Check API cache (try all key variants)
+  // Fall back to API cache for any moves not in dict
   if (moveTypeCache[key]) return moveTypeCache[key];
   if (moveTypeCache[dashKey]) return moveTypeCache[dashKey];
-  if (moveTypeCache[aliasKey]) return moveTypeCache[aliasKey];
   return null;
 }
 
@@ -898,7 +941,9 @@ function getMoveType(moveName) {
   try {
     const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
     Object.assign(moveTypeCache, cached);
-  } catch(e) {}
+    // Debug: log key moves
+    console.log('Cache loaded. tackle='+cached['tackle']+' vine-whip='+cached['vine-whip']+' growl='+cached['growl']+' total='+Object.keys(cached).length);
+  } catch(e) { console.log('Cache load error:',e); }
 })();
 
 // ─── GAME DEFINITIONS ────────────────────────────────────────
@@ -1314,19 +1359,9 @@ async function loadSavedTeam() {
     }
   } catch(e) {}
 
-  // Pre-fetch types for all moves on the team that aren't cached yet
-  const allMoves = team.flatMap(p => p.moves).filter(m => m && m !== '—');
-  const uncached = [...new Set(allMoves)].filter(m => !getMoveType(m));
-  if (uncached.length > 0) {
-    await Promise.all(uncached.map(m => fetchMoveType(m)));
-    const teamPane = document.getElementById('pane-team');
-    if (teamPane && teamPane.style.display !== 'none') renderTeamEditor();
-    updateAllMoveDots();
-  }
-  // Apply theme for current game and render selector
+  // Update dots immediately - all types are hardcoded
   applyGameTheme(currentGame);
   renderGameSelector();
-  // Update dots now that team and cache are both loaded
   updateAllMoveDots();
 }
 
@@ -1695,6 +1730,8 @@ function renderCatchAnalysis(candidate) {
 // ─── TEAM EDITOR ─────────────────────────────────────────────
 function renderTeamEditor() {
   document.getElementById('teamGrid').innerHTML = team.map((p,i) => buildMemberCard(p,i)).join('');
+  // Always update dots after render in case cache loaded after initial dot colors were set
+  requestAnimationFrame(() => updateAllMoveDots());
 }
 
 function buildMemberCard(p, i) {
@@ -1825,11 +1862,7 @@ function toggleMember(i) {
   editorState[i].open = !editorState[i].open;
   renderTeamEditor();
   if (editorState[i].open) {
-    // Fetch any uncached move types for this pokemon then update dots
-    const moves = team[i].moves.filter(m => m && m !== '—' && !getMoveType(m));
-    if (moves.length > 0) {
-      Promise.all(moves.map(m => fetchMoveType(m))).then(() => updateAllMoveDots());
-    }
+    requestAnimationFrame(() => updateAllMoveDots());
   }
 }
 
@@ -1932,28 +1965,26 @@ function previewMoveDot(slotIdx, moveIdx, val) {
   const mt = getMoveType(val);
   dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
 }
-async function finalizeMove(slotIdx, moveIdx, val) {
+function finalizeMove(slotIdx, moveIdx, val) {
   const trimmed = val.trim();
   team[slotIdx].moves[moveIdx] = trimmed || '—';
   saveTeam();
   if (!trimmed || trimmed === '—') return;
-  // Fetch move type from API if not already cached
-  const mt = await fetchMoveType(trimmed);
-  // Update dot color after fetch
-  const card = document.getElementById('mc-'+slotIdx);
-  if (card) {
-    const dots = card.querySelectorAll('.move-dot');
-    if (dots[moveIdx] && mt) {
-      dots[moveIdx].style.background = mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
-    }
+  // Look up type from hardcoded dict - instant, no API needed
+  const mt = getMoveType(trimmed);
+  // Update dot color immediately
+  const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
+  if (dot) {
+    dot.style.background = mt && mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
   }
-  // Save fetched type to localStorage move cache
-  if (mt) {
-    try {
-      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
-      cached[trimmed.toLowerCase().replace(/ /g,'-')] = mt;
-      localStorage.setItem('emerald_move_cache', JSON.stringify(cached));
-    } catch(e) {}
+  // If not in hardcoded dict, fall back to API fetch
+  if (!mt) {
+    fetchMoveType(trimmed).then(apiType => {
+      if (apiType) {
+        const d = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
+        if (d) d.style.background = apiType !== '—' ? (TC[apiType]||'#555') : 'rgba(255,255,255,0.1)';
+      }
+    });
   }
 }
 function updateMove(slotIdx, moveIdx, val) {
@@ -2071,80 +2102,11 @@ let allMovesCache = null;
 
 // Pre-fetch ALL move types for Gen 1-4 (moves 1-467) on first load
 // Fetches in small batches to avoid hammering the API
-async function preCacheAllMoves() {
-  const statusEl = document.getElementById('cache-status');
-  function setStatus(msg) { if(statusEl) { statusEl.textContent = msg; statusEl.style.display = 'block'; } }
-  function hideStatus() { if(statusEl) statusEl.style.display = 'none'; }
-
-  try {
-    // Check if already fully cached
-    const cacheVersion = localStorage.getItem('emerald_full_cache_version');
-    if (cacheVersion === '1') {
-      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
-      const cachedCount = Object.keys(cached).length;
-      // Only trust cache if it has a reasonable number of moves
-      if (cachedCount > 200) {
-        setStatus('✓ MOVE CACHE LOADED (' + cachedCount + ' MOVES)');
-        Object.assign(moveTypeCache, cached);
-        updateAllMoveDots();
-        setTimeout(hideStatus, 2000);
-        return;
-      }
-      // Cache incomplete - clear and re-fetch
-      localStorage.removeItem('emerald_move_cache');
-      localStorage.removeItem('emerald_full_cache_version');
-      setStatus('CACHE INCOMPLETE (' + cachedCount + ') - REBUILDING...');
-    } else {
-      setStatus('STARTING MOVE CACHE BUILD...');
-    }
-
-    // Fetch all move names first
-    setStatus('FETCHING MOVE LIST...');
-    const listRes = await fetch('https://pokeapi.co/api/v2/move?limit=500&offset=0');
-    if (!listRes.ok) { setStatus('ERROR: Could not fetch move list'); return; }
-    const listData = await listRes.json();
-    allMovesCache = listData.results;
-    const total = listData.results.length;
-    setStatus(`CACHING ${total} MOVES... 0%`);
-
-    // Fetch types for all moves in parallel batches of 20
-    const moves = listData.results;
-    const batchSize = 20;
-    let done = 0;
-    for (let i = 0; i < moves.length; i += batchSize) {
-      const batch = moves.slice(i, i + batchSize);
-      await Promise.all(batch.map(async m => {
-        if (moveTypeCache[m.name]) { done++; return; }
-        try {
-          const r = await fetch(`https://pokeapi.co/api/v2/move/${m.name}`);
-          if (!r.ok) { done++; return; }
-          const d = await r.json();
-          const type = (d.power && d.power > 0) ? d.type.name : '—';
-          moveTypeCache[m.name] = type;
-          done++;
-        } catch(e) { done++; }
-      }));
-      const pct = Math.round((done/total)*100);
-      setStatus(`CACHING MOVES... ${done}/${total} (${pct}%)`);
-      await new Promise(r => setTimeout(r, 50));
-      updateAllMoveDots();
-    }
-
-    // Save entire cache to localStorage
-    try {
-      localStorage.setItem('emerald_move_cache', JSON.stringify(moveTypeCache));
-      localStorage.setItem('emerald_full_cache_version', '1');
-    } catch(e) { setStatus('ERROR: localStorage full - ' + e.message); return; }
-
-    setStatus('✓ ALL MOVES CACHED!');
-    updateAllMoveDots();
-    setTimeout(hideStatus, 2000);
-
-  } catch(e) { setStatus('ERROR: ' + e.message); }
+function preCacheAllMoves() {
+  // All moves are hardcoded - just update dots
+  updateAllMoveDots();
 }
-
-// Start pre-caching after a short delay so page loads first
-setTimeout(preCacheAllMoves, 1500);
+setTimeout(preCacheAllMoves, 200);
 
 function saveTeam() {
   try {
