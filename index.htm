@@ -572,17 +572,125 @@ const MOVE_TYPES = {
   "protect":"—","agility":"—","double team":"—","recover":"—",
   "rest":"—","sleep talk":"—","safeguard":"—","baton pass":"—",
   "mimic":"—","substitute":"—","swords dance":"—","amnesia":"—",
+  "thunder wave":"—","string shot":"—","poison powder":"—",
+  "stun spore":"—","sleep powder":"—","leech seed":"—","growth":"—",
+  "toxic":"—","disable":"—","foresight":"—","detect":"—",
+  "destiny bond":"—","perish song":"—","endure":"—","safeguard":"—",
+  "mean look":"—","attract":"—","heal bell":"—","pain split":"—",
+  "psych up":"—","rain dance":"—","sunny day":"—","sandstorm":"—",
+  "hail":"—","cotton spore":"—","scary face":"—","screech":"—",
+  "glare":"—","hypnosis":"—","spore":"—","flash":"—",
+};
+
+// Aliases for moves whose in-game names differ from PokeAPI slug
+const MOVE_ALIASES = {
+  "thundershock": "thunder-shock",
+  "softboiled": "soft-boiled",
+  "hi jump kick": "high-jump-kick",
+  "bubblebeam": "bubble-beam",
+  "doubleslap": "double-slap",
+  "karate chop": "karate-chop",
+  "double kick": "double-kick",
+  "pin missile": "pin-missile",
+  "fury attack": "fury-attack",
+  "fury swipes": "fury-swipes",
+  "quick attack": "quick-attack",
+  "razor leaf": "razor-leaf",
+  "solar beam": "solar-beam",
+  "dragon rage": "dragon-rage",
+  "fire spin": "fire-spin",
+  "rock slide": "rock-slide",
+  "hyper fang": "hyper-hyper-fang",
+  "swift": "swift",
+  "skull bash": "skull-bash",
+  "spike cannon": "spike-cannon",
+  "sky attack": "sky-attack",
+  "dream eater": "dream-eater",
+  "mega drain": "mega-drain",
+  "mega punch": "mega-punch",
+  "mega kick": "mega-kick",
+  "fire punch": "fire-punch",
+  "ice punch": "ice-punch",
+  "thunder punch": "thunder-punch",
+  "take down": "take-down",
+  "body slam": "body-slam",
+  "double edge": "double-edge",
+  "wing attack": "wing-attack",
+  "vice grip": "vise-grip",
+  "giga drain": "giga-drain",
+  "cross chop": "cross-chop",
+  "dynamic punch": "dynamic-punch",
+  "dragon breath": "dragon-breath",
+  "rapid spin": "rapid-spin",
+  "sweet scent": "sweet-scent",
+  "iron tail": "iron-tail",
+  "metal claw": "metal-claw",
+  "morning sun": "morning-sun",
+  "hidden power": "hidden-power",
+  "rain dance": "rain-dance",
+  "sunny day": "sunny-day",
+  "shadow ball": "shadow-ball",
+  "future sight": "future-sight",
+  "rock smash": "rock-smash",
+  "beat up": "beat-up",
+  "fake out": "fake-out",
+  "mach punch": "mach-punch",
+  "feint attack": "feint-attack",
+  "belly drum": "belly-drum",
+  "sludge bomb": "sludge-bomb",
+  "mud slap": "mud-slap",
+  "zap cannon": "zap-cannon",
+  "lock on": "lock-on",
+  "ancient power": "ancient-power",
+  "mirror coat": "mirror-coat",
+  "extreme speed": "extreme-speed",
+  "water gun": "water-gun",
+  "hydro pump": "hydro-pump",
+  "ice beam": "ice-beam",
+  "thunder shock": "thunder-shock",
+  "rock throw": "rock-throw",
+  "poison sting": "poison-sting",
+  "vine whip": "vine-whip",
+  "double slap": "double-slap",
+  "comet punch": "comet-punch",
+  "pay day": "pay-day",
+  "jump kick": "jump-kick",
+  "rolling kick": "rolling-kick",
+  "sand attack": "sand-attack",
+  "horn attack": "horn-attack",
+  "horn drill": "horn-drill",
+  "water gun": "water-gun",
+  "aurora beam": "aurora-beam",
+  "hyper beam": "hyper-beam",
+  "drill peck": "drill-peck",
+  "low kick": "low-kick",
+  "seismic toss": "seismic-toss",
+  "super fang": "super-fang",
+  "tri attack": "tri-attack",
+  "zap cannon": "zap-cannon",
+  "bone rush": "bone-rush",
+  "icy wind": "icy-wind",
+  "false swipe": "false-swipe",
+  "fury cutter": "fury-cutter",
+  "steel wing": "steel-wing",
+  "baton pass": "baton-pass",
+  "vital throw": "vital-throw",
+  "cross chop": "cross-chop",
+  "powder snow": "powder-snow",
 };
 
 // Dynamic move type cache - fetched from PokeAPI
 const moveTypeCache = {};
 
 async function fetchMoveType(moveName) {
-  const key = moveName.trim().toLowerCase().replace(/ /g, '-');
-  if (moveTypeCache[key]) return moveTypeCache[key];
-  if (MOVE_TYPES[moveName.trim().toLowerCase()]) return MOVE_TYPES[moveName.trim().toLowerCase()];
+  const normalized = moveName.trim().toLowerCase();
+  const key = normalized.replace(/ /g, '-');
+  if (moveTypeCache[key] || moveTypeCache[normalized]) return moveTypeCache[key] || moveTypeCache[normalized];
+  if (MOVE_TYPES[normalized] !== undefined) return MOVE_TYPES[normalized];
+  // Use alias if available
+  const apiKey = MOVE_ALIASES[normalized] || key;
   try {
-    const res = await fetch('https://pokeapi.co/api/v2/move/' + key);
+    const res = await fetch('https://pokeapi.co/api/v2/move/' + apiKey);
     if (!res.ok) throw new Error();
     const data = await res.json();
     const type = data.type.name;
@@ -603,12 +711,14 @@ function getMoveType(moveName) {
   if (!moveName || moveName === '—') return '—';
   const key = moveName.trim().toLowerCase();
   const dashKey = key.replace(/ /g, '-');
-  // Check static dict first (both space and dash)
+  const aliasKey = MOVE_ALIASES[key] || dashKey;
+  // Check static dict first
   if (MOVE_TYPES[key] !== undefined) return MOVE_TYPES[key];
   if (MOVE_TYPES[dashKey] !== undefined) return MOVE_TYPES[dashKey];
-  // Then check API cache
+  // Check API cache (try all key variants)
   if (moveTypeCache[key]) return moveTypeCache[key];
   if (moveTypeCache[dashKey]) return moveTypeCache[dashKey];
+  if (moveTypeCache[aliasKey]) return moveTypeCache[aliasKey];
   return null;
 }
 
@@ -686,8 +796,13 @@ let editorState = team.map(() => ({
 }));
 
 // Load saved team - delayed 100ms to avoid WebKit localStorage "too early" bug
-function loadSavedTeam() {
+async function loadSavedTeam() {
   try {
+    // Load move type cache first
+    const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
+    Object.assign(moveTypeCache, cached);
+
+    // Load saved team
     const saved = localStorage.getItem('emerald_team');
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -700,8 +815,37 @@ function loadSavedTeam() {
       }
     }
   } catch(e) {}
+
+  // Pre-fetch types for all moves on the team that aren't cached yet
+  const allMoves = team.flatMap(p => p.moves).filter(m => m && m !== '—');
+  const uncached = [...new Set(allMoves)].filter(m => !getMoveType(m));
+  if (uncached.length > 0) {
+    await Promise.all(uncached.map(m => fetchMoveType(m)));
+    // Re-render team editor if it's open so dots update
+    const teamPane = document.getElementById('pane-team');
+    if (teamPane && teamPane.style.display !== 'none') {
+      renderTeamEditor();
+    }
+    // Also update all move dots directly regardless of which pane is open
+    updateAllMoveDots();
+  }
 }
-setTimeout(loadSavedTeam, 100);
+
+function updateAllMoveDots() {
+  team.forEach((p, slotIdx) => {
+    const card = document.getElementById('mc-' + slotIdx);
+    if (!card) return;
+    const dots = card.querySelectorAll('.move-dot');
+    p.moves.forEach((m, moveIdx) => {
+      if (dots[moveIdx]) {
+        const mt = getMoveType(m);
+        dots[moveIdx].style.background = mt && mt !== '—' ? (TC[mt] || '#555') : 'rgba(255,255,255,0.1)';
+      }
+    });
+  });
+}
+
+setTimeout(loadSavedTeam, 150);
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function getEff(at, defTypes) {
@@ -1122,6 +1266,13 @@ function buildMemberCard(p, i) {
 function toggleMember(i) {
   editorState[i].open = !editorState[i].open;
   renderTeamEditor();
+  if (editorState[i].open) {
+    // Fetch any uncached move types for this pokemon then update dots
+    const moves = team[i].moves.filter(m => m && m !== '—' && !getMoveType(m));
+    if (moves.length > 0) {
+      Promise.all(moves.map(m => fetchMoveType(m))).then(() => updateAllMoveDots());
+    }
+  }
 }
 
 // Swap
@@ -1219,6 +1370,14 @@ async function finalizeMove(slotIdx, moveIdx, val) {
     if (dots[moveIdx] && mt) {
       dots[moveIdx].style.background = mt !== '—' ? (TC[mt]||'#555') : 'rgba(255,255,255,0.1)';
     }
+  }
+  // Save fetched type to localStorage move cache
+  if (mt) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
+      cached[trimmed.toLowerCase().replace(/ /g,'-')] = mt;
+      localStorage.setItem('emerald_move_cache', JSON.stringify(cached));
+    } catch(e) {}
   }
 }
 function updateMove(slotIdx, moveIdx, val) {
