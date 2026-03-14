@@ -657,6 +657,24 @@ let editorState = team.map(() => ({
   swapLoading:false, evoChain:null, evoLoading:false,
 }));
 
+// Load saved team immediately after state init
+(function() {
+  try {
+    const saved = localStorage.getItem('emerald_team');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length === 6) {
+        team = parsed;
+        editorState = team.map(() => ({
+          open:false, swapInput:'', swapPreview:null, swapError:'',
+          swapLoading:false, evoChain:null, evoLoading:false,
+        }));
+        console.log('Team loaded from storage:', team.map(p=>p.name));
+      }
+    }
+  } catch(e) { console.log('Load error:', e); }
+})();
+
 // ─── HELPERS ─────────────────────────────────────────────────
 function getEff(at, defTypes) {
   let m = 1;
@@ -1158,9 +1176,9 @@ function previewMoveDot(slotIdx, moveIdx, val) {
   }
 }
 function finalizeMove(slotIdx, moveIdx, val) {
-  // Save the completed move name when done typing
   const trimmed = val.trim();
   team[slotIdx].moves[moveIdx] = trimmed || '—';
+  console.log('Move saved:', slotIdx, moveIdx, trimmed, '| Full team moves:', team.map(p=>p.moves));
   saveTeam();
 }
 function updateMove(slotIdx, moveIdx, val) {
@@ -1174,24 +1192,12 @@ function removeMove(slotIdx, moveIdx) {
 
 // ─── PERSISTENCE ─────────────────────────────────────────────
 function saveTeam() {
-  try { localStorage.setItem('emerald_team', JSON.stringify(team)); } catch(e) {}
-}
-function loadTeam() {
   try {
-    const saved = localStorage.getItem('emerald_team');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length === 6) {
-        team = parsed;
-        editorState = team.map(() => ({
-          open:false, swapInput:'', swapPreview:null, swapError:'',
-          swapLoading:false, evoChain:null, evoLoading:false,
-        }));
-      }
-    }
-  } catch(e) {}
+    localStorage.setItem('emerald_team', JSON.stringify(team));
+    console.log('Team saved. Moves:', team.map(p=>({name:p.name, moves:p.moves})));
+  } catch(e) { console.log('Save error:', e); }
 }
-loadTeam();
+// Team loaded at init above
 function addMove(slotIdx) {
   if (team[slotIdx].moves.length < 4) {
     team[slotIdx].moves.push('');
