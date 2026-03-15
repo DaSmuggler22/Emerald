@@ -46,7 +46,7 @@ border: 1px solid; transition: all 0.18s ease;
 .map-toggle.off { background: transparent !important; opacity: 0.4; }
 .map-wrap {
 position: relative; overflow: hidden;
-height: calc(100vh - 268px); min-height: 320px;
+height: calc(100vh - 318px); min-height: 280px;
 touch-action: none;
 -webkit-user-select: none; user-select: none;
 background: #061420;
@@ -74,15 +74,16 @@ user-select: none; -webkit-user-select: none;
 }
 /* Info panel */
 .map-info-panel {
-position: absolute; bottom: 0; left: 0; right: 0;
-background: rgba(6,15,10,0.97);
+position: fixed; bottom: 0; left: 0; right: 0;
+background: rgba(6,15,10,0.99);
 border-top: 2px solid #1a4028;
-border-radius: 12px 12px 0 0;
-padding: 14px 16px 20px;
+border-radius: 16px 16px 0 0;
+padding: 16px 16px 36px;
 transform: translateY(100%);
-transition: transform 0.25s ease;
-max-height: 55%; overflow-y: auto;
-z-index: 10;
+transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+max-height: 60vh; overflow-y: auto;
+z-index: 2000;
+box-shadow: 0 -8px 40px rgba(0,0,0,0.8);
 }
 .map-info-panel.open { transform: translateY(0); }
 .map-info-close {
@@ -820,47 +821,44 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
     </div>
     <div class="map-wrap" id="map-wrap">
       <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-      <!-- Legend overlay -->
-      <div id="map-legend" style="
-        position:absolute; bottom:10px; left:8px;
-        background:rgba(4,8,4,0.92);
-        border:1px solid rgba(0,168,107,0.3);
-        border-radius:10px; padding:9px 12px;
-        font-family:monospace; font-size:8px;
-        letter-spacing:0.8px; line-height:1.9;
-        pointer-events:none; z-index:5;
-        backdrop-filter:blur(4px);
-        box-shadow:0 4px 20px rgba(0,0,0,0.6);
-      ">
-        <div style="color:#00a86b;letter-spacing:2px;font-size:7px;margin-bottom:5px;font-weight:bold">PATH KEY</div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#2d5a3d" stroke-width="2" stroke-linecap="round"/></svg>
-          <span style="color:#5a8a64">OPEN</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
-          <span style="color:#4a9eff">HM MOVE</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#ffd700" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
-          <span style="color:#ffd700">BADGE</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#ff9900" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
-          <span style="color:#ff9900">KEY ITEM</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#cc44ff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
-          <span style="color:#cc44ff">STORY</span>
-        </div>
-        <div style="color:#2d4a3d;margin-top:5px;font-size:6.5px;letter-spacing:0.5px">TAP LABEL TO LEARN MORE</div>
-      </div>
-      <div class="map-info-panel" id="map-info">
-        <button class="map-info-close" onclick="closeMapInfo()">✕</button>
-        <div class="map-info-name" id="map-info-name"></div>
-        <div class="map-info-type" id="map-info-type"></div>
-        <div id="map-info-encounters"></div>
-      </div>
+    </div>
+    <!-- Legend outside wrap so it's not clipped -->
+    <div id="map-legend" style="
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      padding:8px 12px;
+      background:rgba(4,8,4,0.95);
+      border-top:1px solid rgba(0,168,107,0.15);
+      font-family:monospace; font-size:8px; letter-spacing:0.8px;
+    ">
+      <span style="color:#00a86b;font-weight:bold;letter-spacing:2px;font-size:7px;margin-right:4px">PATHS:</span>
+      <span style="display:flex;align-items:center;gap:5px">
+        <svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="#2d5a3d" stroke-width="2" stroke-linecap="round"/></svg>
+        <span style="color:#5a8a64">OPEN</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:5px">
+        <svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+        <span style="color:#4a9eff">HM</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:5px">
+        <svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="#ffd700" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+        <span style="color:#ffd700">BADGE</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:5px">
+        <svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="#ff9900" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+        <span style="color:#ff9900">ITEM</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:5px">
+        <svg width="18" height="8"><line x1="0" y1="4" x2="18" y2="4" stroke="#cc44ff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+        <span style="color:#cc44ff">STORY</span>
+      </span>
+      <span style="color:#2d4a3d;font-size:6.5px;margin-left:auto">TAP TO LEARN MORE</span>
+    </div>
+    <!-- Info panel outside wrap, slides up from bottom of pane -->
+    <div class="map-info-panel" id="map-info">
+      <button class="map-info-close" onclick="closeMapInfo()">✕</button>
+      <div class="map-info-name" id="map-info-name"></div>
+      <div class="map-info-type" id="map-info-type"></div>
+      <div id="map-info-encounters"></div>
     </div>
   </div>
 
@@ -2671,7 +2669,8 @@ function renderMapSVG() {
       `}
       <!-- Tap target -->
       <rect x="${loc.x}" y="${loc.y}" width="${loc.w}" height="${loc.h}"
-            fill="transparent" rx="${rx}" style="cursor:pointer" onclick="mapLocTap(this)"/>
+            fill="rgba(0,0,0,0.01)" rx="${rx}" style="cursor:pointer;-webkit-tap-highlight-color:transparent"
+            onclick="mapLocTap(this)" ontouchstart="event.stopPropagation();mapLocTap(this)"/>
     </g>`;
   });
 
@@ -2702,17 +2701,16 @@ function mapLocTap(el) {
 
   const encs = getEncountersData()[name];
   if (encs && encs.length) {
-    encEl.innerHTML = '<div style="font-family:monospace;font-size:9px;color:#4a6a54;letter-spacing:2px;margin-bottom:8px">WILD POKÉMON</div>' +
+    encEl.innerHTML = '<div style="font-family:monospace;font-size:9px;color:#4a6a54;letter-spacing:2px;margin-bottom:10px">WILD POKÉMON</div>' +
       encs.map(e => {
-        const dotColor = TC[e.type] || '#555';
         return `<div class="encounter-row">
-          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
-          <span>${e.name}</span>
+          <svg width="26" height="13"><use href="#type-${e.type}"/></svg>
+          <span style="flex:1">${e.name}</span>
           <span class="encounter-rarity rarity-${e.rarity}">${e.rarity.toUpperCase()}</span>
         </div>`;
       }).join('');
   } else {
-    encEl.innerHTML = '<div class="map-no-data">No encounter data yet</div>';
+    encEl.innerHTML = '<div class="map-no-data">No wild Pokémon data for this location.</div>';
   }
 
   panel.classList.add('open');
@@ -2732,7 +2730,7 @@ function toggleLayer(type) {
   });
   // Hide legend when paths are off
   const legend = document.getElementById('map-legend');
-  if (legend) legend.style.display = mapState.layers.path ? '' : 'none';
+  if (legend) legend.style.display = mapState.layers.path ? 'flex' : 'none';
 }
 
 function updateMapToggleColors() {
@@ -3111,8 +3109,9 @@ function renderPaths(svgEl) {
 }
 
 function showPathInfo(frm, to, reqType, reqLabel) {
-  frm = frm.replace(/&#39;/g,"'");
-  to  = to.replace(/&#39;/g,"'");
+  frm = (frm||'').replace(/&#39;/g,"'");
+  to  = (to||'').replace(/&#39;/g,"'");
+  reqLabel = (reqLabel||'').replace(/&#39;/g,"'");
   const style = PATH_STYLES[reqType || "open"];
   const panel = document.getElementById("map-info");
   const nameEl = document.getElementById("map-info-name");
@@ -3122,23 +3121,30 @@ function showPathInfo(frm, to, reqType, reqLabel) {
   nameEl.textContent = frm + " → " + to;
   typeEl.style.color = style.stroke;
 
-  const typeNames = {hm:"HM REQUIRED", badge:"BADGE REQUIRED", item:"KEY ITEM REQUIRED", story:"STORY GATE"};
-  typeEl.textContent = typeNames[reqType] || "OPEN PATH";
-
-  const icons = {hm:"💧", badge:"🏅", item:"🎒", story:"🔒"};
-  const descs = {
-    hm:    "You need a Pokémon with this HM move and the required badge to use it outside battle.",
-    badge: "You need to have earned this badge to proceed.",
-    item:  "You need this key item in your bag.",
-    story: "This path opens as you progress through the story.",
+  const categories = {
+    hm:    { tag:"HM MOVE",   color:"#4a9eff", icon:"🌊", desc:"Teach a Pokémon this HM and earn the required badge to use it outside battle." },
+    badge: { tag:"BADGE",     color:"#ffd700", icon:"🏅", desc:"Earn all required gym badges to pass through here." },
+    item:  { tag:"KEY ITEM",  color:"#ff9900", icon:"🎒", desc:"You need a specific key item in your bag." },
+    story: { tag:"STORY",     color:"#cc44ff", icon:"🔒", desc:"This route unlocks as part of the main story." },
   };
+  const cat = categories[reqType] || { tag:"OPEN", color:"#2d5a3d", icon:"✓", desc:"No requirement." };
+  typeEl.textContent = "PATH BLOCKED";
+
   encEl.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)">
-      <div style="font-size:28px;line-height:1">${icons[reqType]||"➡"}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
+      <div style="background:${cat.color}22;border:1px solid ${cat.color};border-radius:20px;
+        padding:3px 12px;font-family:monospace;font-size:9px;font-weight:bold;
+        color:${cat.color};letter-spacing:1.5px">${cat.tag}</div>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <div style="font-size:32px;line-height:1;flex-shrink:0">${cat.icon}</div>
       <div>
-        <div style="font-size:18px;color:${style.stroke};font-family:monospace;letter-spacing:1px">${reqLabel}</div>
-        <div style="font-size:12px;color:#6a8a6a;margin-top:4px;line-height:1.4">${descs[reqType]||""}</div>
+        <div style="font-size:20px;color:${cat.color};font-family:monospace;letter-spacing:1px;margin-bottom:6px">${reqLabel}</div>
+        <div style="font-size:12px;color:#7a9a84;line-height:1.6">${cat.desc}</div>
       </div>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#4a6a54;font-family:monospace">
+      ${frm} <span style="color:#2d5a3d">──▶</span> ${to}
     </div>`;
   panel.classList.add("open");
 }
