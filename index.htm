@@ -1625,7 +1625,8 @@ async function fetchPoke(name) {
   const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.trim().toLowerCase()}`);
   if (!res.ok) throw new Error();
   const d = await res.json();
-  return { name:d.name, id:d.id, types:d.types.map(t=>t.type.name), sprite:d.sprites.front_default };
+  const bst = d.stats.reduce((s,st)=>s+st.base_stat,0);
+  return { name:d.name, id:d.id, types:d.types.map(t=>t.type.name), sprite:d.sprites.front_default, bst, moves:[] };
 }
 
 // ─── TEAM COVERAGE SCORE ─────────────────────────────────────
@@ -1805,133 +1806,333 @@ function quickCatch(name) {
   fetchAndRenderCatch(name);
 }
 
+
+// ── KEY UTILITY MOVES (moves worth extra score) ──
+const UTILITY_MOVES = new Set([
+  'thunder-wave','toxic','will-o-wisp','hypnosis','spore','sleep-powder','stun-spore',
+  'earthquake','stealth-rock','spikes','toxic-spikes','leech-seed','trick-room',
+  'dragon-dance','swords-dance','calm-mind','bulk-up','nasty-plot','belly-drum',
+  'rapid-spin','baton-pass','encore','trick','memento','destiny-bond','explosion',
+  'self-destruct','perish-song','whirlpool','mean-look','spider-web','fire-blast',
+  'surf','ice-beam','blizzard','thunderbolt','psychic','shadow-ball','aura-sphere',
+  'close-combat','stone-edge','cross-chop','hydro-pump','flamethrower','focus-blast',
+  'energy-ball','dark-pulse','x-scissor','bug-buzz','flash-cannon','iron-head'
+]);
+
+// Cache for evo chain and move data
+const pokeAnalysisCache = {};
+
 async function fetchAndRenderCatch(name) {
   const errEl = document.getElementById('catchError');
   const resEl = document.getElementById('catchResults');
   errEl.style.display = 'none';
-  resEl.innerHTML = `<div class="poke-loading">ANALYZING TEAM...</div>`;
+  resEl.innerHTML = `<div class="poke-loading">ANALYZING...</div>`;
   try {
     const candidate = await fetchPoke(name);
     addToHistory(catchHistory, 'catchSuggs', candidate.name, 'quickCatch');
-    renderCatchAnalysis(candidate);
-  } catch {
+
+    // Show basic result immediately while we fetch deep data
+    resEl.innerHTML = `<div class="poke-loading">CHECKING EVOLUTION & MOVES...</div>`;
+
+    // Fetch deep data in parallel
+    const [evoData, moveData] = await Promise.all([
+      fetchEvoData(candidate),
+      fetchMovePoolData(candidate),
+    ]);
+
+    renderCatchAnalysis(candidate, evoData, moveData);
+  } catch(e) {
     resEl.innerHTML = '';
     errEl.textContent = `"${name}" NOT FOUND — CHECK SPELLING!`;
     errEl.style.display = 'block';
   }
 }
 
-function renderCatchAnalysis(candidate) {
-  const currentScore  = teamCoverageScore(team);
-  const currentWeaks  = teamWeaknesses(team);
-  const currentUncov  = teamUncoveredTypes(team);
+async function fetchEvoData(pokemon) {
+  const cacheKey = 'evo_' + pokemon.id;
+  if (pokeAnalysisCache[cacheKey]) return pokeAnalysisCache[cacheKey];
+  try {
+    // Get species for evo chain url
+    const specRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokemon.id}`);
+    const specData = await specRes.json();
+    const evoRes = await fetch(specData.evolution_chain.url);
+    const evoData = await evoRes.json();
 
-  // Simulate replacing each team slot with candidate
+    // Walk the chain to find this pokemon's position and final form
+    const chain = evoData.chain;
+    let stages = 0, finalFormId = pokemon.id, finalFormBST = 0;
+    let stagesFromCurrent = 0;
+
+    function walkChain(node, depth) {
+      const nodeName = node.species.name;
+      const nodeId = parseInt(node.species.url.split('/').filter(Boolean).pop());
+      if (nodeName === pokemon.name.toLowerCase().replace(/ /g,'-')) {
+        stages = depth;
+        stagesFromCurrent = node.evolves_to.length > 0 ? countChainDepth(node) : 0;
+      }
+      if (node.evolves_to.length === 0) {
+        // This is a final form - record it
+        if (!finalFormId || depth > stages) finalFormId = nodeId;
+      }
+      node.evolves_to.forEach(next => walkChain(next, depth + 1));
+    }
+    function countChainDepth(node) {
+      if (node.evolves_to.length === 0) return 0;
+      return 1 + Math.max(...node.evolves_to.map(countChainDepth));
+    }
+    walkChain(chain, 0);
+
+    // Get final form BST if different from current
+    let finalBST = pokemon.bst || 0;
+    if (finalFormId !== pokemon.id) {
+      try {
+        const finalRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${finalFormId}`);
+        const finalData = await finalRes.json();
+        finalBST = finalData.stats.reduce((s, st) => s + st.base_stat, 0);
+      } catch(e) {}
+    }
+
+    const result = { stagesFromCurrent, finalBST, currentBST: pokemon.bst || 0 };
+    pokeAnalysisCache[cacheKey] = result;
+    return result;
+  } catch(e) {
+    return { stagesFromCurrent: 0, finalBST: pokemon.bst || 0, currentBST: pokemon.bst || 0 };
+  }
+}
+
+async function fetchMovePoolData(pokemon) {
+  const cacheKey = 'moves_' + pokemon.id;
+  if (pokeAnalysisCache[cacheKey]) return pokeAnalysisCache[cacheKey];
+  try {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+    const data = await res.json();
+    const moveNames = data.moves.map(m => m.move.name);
+    const utilityMoves = moveNames.filter(m => UTILITY_MOVES.has(m));
+    // Get types of all damaging moves this pokemon can learn (for coverage scoring)
+    const damageTypes = new Set(pokemon.types); // start with STAB
+    // Check for key coverage moves
+    const hasCoverage = {
+      earthquake: moveNames.includes('earthquake'),
+      iceBeam: moveNames.includes('ice-beam') || moveNames.includes('blizzard'),
+      thunderbolt: moveNames.includes('thunderbolt') || moveNames.includes('thunder'),
+      flamethrower: moveNames.includes('flamethrower') || moveNames.includes('fire-blast'),
+      surf: moveNames.includes('surf') || moveNames.includes('hydro-pump'),
+      psychic: moveNames.includes('psychic'),
+      shadowBall: moveNames.includes('shadow-ball'),
+      focusBlast: moveNames.includes('focus-blast') || moveNames.includes('close-combat') || moveNames.includes('aura-sphere'),
+    };
+    // Add coverage types
+    if (hasCoverage.earthquake)   damageTypes.add('ground');
+    if (hasCoverage.iceBeam)      damageTypes.add('ice');
+    if (hasCoverage.thunderbolt)  damageTypes.add('electric');
+    if (hasCoverage.flamethrower) damageTypes.add('fire');
+    if (hasCoverage.surf)         damageTypes.add('water');
+    if (hasCoverage.psychic)      damageTypes.add('psychic');
+    if (hasCoverage.shadowBall)   damageTypes.add('ghost');
+    if (hasCoverage.focusBlast)   damageTypes.add('fighting');
+
+    const result = {
+      utilityMoves: utilityMoves.slice(0, 5),
+      damageTypes: [...damageTypes],
+      utilityCount: utilityMoves.length,
+      hasCoverage,
+    };
+    pokeAnalysisCache[cacheKey] = result;
+    return result;
+  } catch(e) {
+    return { utilityMoves: [], damageTypes: [...pokemon.types], utilityCount: 0, hasCoverage: {} };
+  }
+}
+
+function renderCatchAnalysis(candidate, evoData, moveData) {
+  const capName = n => n.charAt(0).toUpperCase() + n.slice(1);
+  const currentUncov = teamUncoveredTypes(team);
+  const currentWeaks = teamWeaknesses(team);
+
+  // ── SCORE FACTOR 1: Type Coverage (0-40 pts) ──
+  // How many new offensive types does it (and its move pool) add?
+  const allCandidateTypes = new Set([...candidate.types, ...moveData.damageTypes]);
+  const newOffTypes = [...allCandidateTypes].filter(t => {
+    // Does it super-effectively hit a type the team can't currently hit?
+    return currentUncov.some(uncov => {
+      // Check if this type hits uncovered type super effectively
+      return getEff(t, [uncov]) >= 2;
+    }) || !team.some(p => p.types.includes(t));
+  });
+  const coverageScore = Math.min(40, newOffTypes.length * 10 + (moveData.hasCoverage.earthquake ? 8 : 0));
+
+  // ── SCORE FACTOR 2: Evolution Potential (0-35 pts) ──
+  // Based on final form BST and how many evolutions remain
+  const bstGain = Math.max(0, (evoData.finalBST || candidate.bst) - (candidate.bst || 300));
+  const evoBonus = evoData.stagesFromCurrent * 15; // 15pts per remaining evolution
+  const bstBonus  = Math.min(20, Math.floor(bstGain / 25)); // up to 20pts for BST gain
+  const evolutionScore = Math.min(35, evoBonus + bstBonus);
+
+  // ── SCORE FACTOR 3: Move Pool Utility (0-25 pts) ──
+  // Unique utility moves = status, setup, pivoting
+  const utilityScore = Math.min(25, moveData.utilityCount * 5);
+
+  const totalScore = coverageScore + evolutionScore + utilityScore;
+
+  // ── VERDICT ──
+  let verdict, verdictClass, reason;
+
+  // Check team redundancy
+  const typeOverlap = candidate.types.filter(t => team.filter(p => p.types.includes(t)).length >= 2).length;
+  const isRedundant = typeOverlap >= candidate.types.length && evoData.stagesFromCurrent === 0;
+
+  if (totalScore >= 55) {
+    verdict = 'YES'; verdictClass = 'verdict-yes';
+    if (evoData.stagesFromCurrent > 0 && bstGain > 100) {
+      reason = `${capName(candidate.name)} evolves ${evoData.stagesFromCurrent} more time${evoData.stagesFromCurrent>1?'s':''} into a powerhouse (${evoData.finalBST} BST). The investment is worth it.`;
+    } else if (newOffTypes.length >= 2) {
+      reason = `${capName(candidate.name)} fills ${newOffTypes.length} coverage gaps your team is missing. Strong addition.`;
+    } else {
+      reason = `${capName(candidate.name)} scores well across coverage, potential, and utility. Solid upgrade.`;
+    }
+  } else if (totalScore >= 35) {
+    verdict = 'MAYBE'; verdictClass = 'verdict-maybe';
+    if (evoData.stagesFromCurrent > 0) {
+      reason = `${capName(candidate.name)} takes work to raise but ${evoData.stagesFromCurrent > 1 ? 'two evolutions give it' : 'its evolution gives it'} real payoff (${evoData.finalBST} BST). Worth it if you have patience.`;
+    } else if (moveData.utilityCount > 2) {
+      reason = `${capName(candidate.name)} has a deep utility move pool (${moveData.utilityCount} support moves). Useful if you need a support Pokémon.`;
+    } else {
+      reason = `${capName(candidate.name)} offers some value but doesn't dramatically change your team. Situational pick.`;
+    }
+  } else if (isRedundant) {
+    verdict = 'NO'; verdictClass = 'verdict-no';
+    reason = `Your team already has ${candidate.types.join('/')} covered well. ${capName(candidate.name)} would be redundant — look for a different type.`;
+  } else {
+    verdict = 'NO'; verdictClass = 'verdict-no';
+    reason = `${capName(candidate.name)} doesn't add much your team doesn't already have. Coverage, potential, and utility all score low.`;
+  }
+
+  // ── SWAP SUGGESTIONS (smarter) ──
   const improvements = team.map((member, i) => {
-    const newTeam = team.map((p, j) => j === i ? { ...candidate, moves: candidate.types.map(t => t) } : p);
-    // Give candidate credit for STAB moves from its types
-    const fakeMoves = candidate.types.flatMap(t => {
-      const moveMap = { fire:["ember"], water:["water gun"], grass:["absorb"], electric:["thundershock"],
-        psychic:["confusion"], fighting:["low kick"], rock:["rock throw"], ground:["mud slap"],
-        flying:["gust"], ghost:["shadow ball"], ice:["ice beam"], dragon:["dragon claw"],
-        dark:["bite"], steel:["metal claw"], bug:["fury cutter"], poison:["poison sting"],
-        normal:["tackle"], fairy:["dazzling gleam"] };
-      return moveMap[t] || [];
+    // Score the team WITH candidate replacing slot i
+    const fakeMoves = [...candidate.types, ...moveData.damageTypes].map(t => {
+      const mm = {fire:'ember',water:'surf',grass:'absorb',electric:'thunderbolt',
+        psychic:'psychic',fighting:'close-combat',rock:'stone-edge',ground:'earthquake',
+        flying:'aerial-ace',ghost:'shadow-ball',ice:'ice-beam',dragon:'dragon-claw',
+        dark:'dark-pulse',steel:'flash-cannon',bug:'bug-buzz',poison:'sludge-bomb',
+        normal:'hyper-beam',fairy:'dazzling-gleam'};
+      return mm[t] || t;
     });
     const fakeCandidate = { ...candidate, moves: fakeMoves };
     const testTeam = team.map((p, j) => j === i ? fakeCandidate : p);
     const newScore = teamCoverageScore(testTeam);
-    const newWeaks = teamWeaknesses(testTeam);
-    const scoreDelta = newScore - currentScore;
-    const weakDelta  = currentWeaks.length - newWeaks.length;
-    return { member, index: i, scoreDelta, weakDelta, newScore, newWeaks };
-  }).sort((a, b) => (b.scoreDelta + b.weakDelta) - (a.scoreDelta + a.weakDelta));
-
-  const best = improvements[0];
-  const netGain = best.scoreDelta + best.weakDelta;
-
-  // Determine verdict
-  let verdict, verdictClass, reason;
-  const newTypeCoverage = candidate.types.some(t => !team.some(p => p.types.includes(t)));
-  const coversWeakness = candidate.types.some(t => !currentWeaks.includes(t) === false || currentUncov.includes(t));
-
-  if (netGain >= 2 || best.scoreDelta >= 2) {
-    verdict = "CATCH IT!"; verdictClass = "verdict-yes";
-    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} covers ${best.scoreDelta} new type(s) your team is missing. Solid upgrade for coverage.`;
-  } else if (netGain >= 1 || currentUncov.some(t => candidate.types.some(at => getEff(at,[t])>=2))) {
-    verdict = "WORTH IT"; verdictClass = "verdict-maybe";
-    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} provides some new coverage and could fill a gap. Consider it if you need that typing.`;
-  } else if (newTypeCoverage) {
-    verdict = "MAYBE"; verdictClass = "verdict-maybe";
-    reason = `${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} brings a new type to the team but doesn't dramatically improve coverage right now.`;
-  } else {
-    verdict = "SKIP IT"; verdictClass = "verdict-no";
-    reason = `Your team already covers what ${candidate.name.charAt(0).toUpperCase()+candidate.name.slice(1)} offers. No significant coverage improvement.`;
-  }
-
-  // Types candidate covers that team currently misses
-  const newCoverage = currentUncov.filter(t => {
-    const fakeMoves = candidate.types.flatMap(ct => {
-      const mm = {fire:["ember"],water:["water gun"],grass:["absorb"],electric:["thundershock"],psychic:["confusion"],fighting:["low kick"],rock:["rock throw"],ground:["mud slap"],flying:["gust"],ghost:["shadow ball"],ice:["ice beam"],dragon:["dragon claw"],dark:["bite"],steel:["metal claw"],bug:["fury cutter"],poison:["poison sting"],normal:["tackle"],fairy:["dazzling gleam"]};
-      return mm[ct] || [];
-    });
-    return getBestMult(fakeMoves, [t]) >= 2;
+    const oldScore = teamCoverageScore(team);
+    const scoreDelta = newScore - oldScore;
+    // Also check if member being replaced has type overlap with candidate
+    const memberRedundancy = member.types.filter(t => candidate.types.includes(t)).length;
+    return { member, index: i, scoreDelta, newScore, memberRedundancy };
+  }).sort((a, b) => {
+    // Sort by: coverage gain first, then prefer replacing redundant types
+    const aVal = a.scoreDelta * 10 + a.memberRedundancy;
+    const bVal = b.scoreDelta * 10 + b.memberRedundancy;
+    return bVal - aVal;
   });
 
+  const best = improvements[0];
+
+  // ── BUILD HTML ──
   let html = `
     <div class="catch-result">
       <div class="catch-header">
         <img class="catch-sprite" src="${candidate.sprite}" alt="${candidate.name}"/>
         <div>
-          <div class="catch-pname">${candidate.name}</div>
+          <div class="catch-pname">${capName(candidate.name)}</div>
           <div class="type-badges" style="margin:4px 0">${candidate.types.map(typeBadge).join('')}</div>
           <span class="catch-verdict ${verdictClass}">${verdict}</span>
         </div>
       </div>
       <div class="catch-body">
         <div class="catch-reason">${reason}</div>
+
+        <!-- Score breakdown -->
+        <div style="margin:12px 0;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;border:1px solid rgba(255,255,255,0.06)">
+          <div style="font-family:monospace;font-size:8px;color:#4a6a54;letter-spacing:2px;margin-bottom:8px">SCORE BREAKDOWN</div>
+          ${scoreBar('COVERAGE',  coverageScore,  40, '#4a9eff')}
+          ${scoreBar('EVOLUTION', evolutionScore, 35, '#f0c040')}
+          ${scoreBar('UTILITY',   utilityScore,   25, '#cc44ff')}
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);
+            display:flex;justify-content:space-between;font-family:monospace;font-size:9px">
+            <span style="color:#4a6a54">TOTAL SCORE</span>
+            <span style="color:${totalScore>=55?'#4cff72':totalScore>=35?'#f0c040':'#ff6666'};font-weight:bold">${totalScore}/100</span>
+          </div>
+        </div>
   `;
 
-  if (newCoverage.length > 0) {
+  // Evolution chain display
+  if (evoData.stagesFromCurrent > 0) {
     html += `
-      <div class="sec-label" style="margin-bottom:8px">NEW TYPE COVERAGE</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">
-        ${newCoverage.map(t => `<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}
+      <div style="font-family:monospace;font-size:8px;color:#4a6a54;letter-spacing:2px;margin-bottom:6px">EVOLUTION POTENTIAL</div>
+      <div style="font-size:12px;color:#b0ccb8;margin-bottom:12px">
+        ${evoData.stagesFromCurrent} evolution${evoData.stagesFromCurrent>1?'s':''} remaining · Final form BST: <span style="color:#f0c040;font-weight:bold">${evoData.finalBST}</span>
+        <span style="color:#4a6a54"> (currently ${candidate.bst||'?'})</span>
       </div>
     `;
   }
 
-  html += `<div class="sec-label" style="margin-bottom:8px">SWAP SUGGESTIONS</div>`;
+  // Utility moves
+  if (moveData.utilityMoves.length > 0) {
+    const moveNames = moveData.utilityMoves.map(m =>
+      m.split('-').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ')
+    );
+    html += `
+      <div style="font-family:monospace;font-size:8px;color:#4a6a54;letter-spacing:2px;margin-bottom:6px">KEY MOVES</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">
+        ${moveNames.map(m => `<span style="background:rgba(204,68,255,0.12);border:1px solid rgba(204,68,255,0.3);border-radius:12px;padding:2px 8px;font-family:monospace;font-size:9px;color:#cc44ff">${m}</span>`).join('')}
+      </div>
+    `;
+  }
 
+  // Coverage gaps filled
+  const gapsFilled = currentUncov.filter(t => [...allCandidateTypes].some(ct => getEff(ct,[t])>=2));
+  if (gapsFilled.length > 0) {
+    html += `
+      <div style="font-family:monospace;font-size:8px;color:#4a6a54;letter-spacing:2px;margin-bottom:6px">COVERAGE GAPS FILLED</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">
+        ${gapsFilled.map(t => `<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}
+      </div>
+    `;
+  }
+
+  // Swap suggestions
+  html += `<div class="sec-label" style="margin-bottom:8px">SWAP SUGGESTIONS</div>`;
   improvements.slice(0, 3).forEach((imp, i) => {
-    const isRec = i === 0 && netGain > 0;
-    const delta = imp.scoreDelta + imp.weakDelta;
-    const deltaStr = delta > 0 ? `+${delta} coverage` : delta === 0 ? 'No change' : `${delta} coverage`;
+    const isRec = i === 0 && imp.scoreDelta >= 0;
+    const delta = imp.scoreDelta;
+    const deltaStr = delta > 0 ? `+${delta} coverage` : delta === 0 ? 'Neutral swap' : `${delta} coverage`;
+    const redundantNote = imp.memberRedundancy > 0 ? ` · replaces overlapping type` : '';
     html += `
       <div class="swap-suggestion ${isRec?'recommended':''}">
         <img class="swap-sug-sprite" src="${spriteUrl(imp.member.id)}" alt="${imp.member.name}"/>
         <div class="swap-sug-info">
-          <div class="swap-sug-name">Replace ${imp.member.name}</div>
-          <div class="swap-sug-reason">${deltaStr} · ${imp.newScore}/18 types covered</div>
+          <div class="swap-sug-name">Replace ${capName(imp.member.name)}</div>
+          <div class="swap-sug-reason">${deltaStr} · ${imp.newScore}/18 types${redundantNote}</div>
         </div>
         ${isRec ? `<div class="swap-sug-label">★ BEST<br>SWAP</div>` : ''}
       </div>
     `;
   });
 
-  // Current team weaknesses
-  if (currentWeaks.length) {
-    html += `
-      <div class="sec-label" style="margin-top:12px;margin-bottom:8px">TEAM WEAKNESSES</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">
-        ${currentWeaks.map(t=>`<span class="tbadge" style="background:${TC[t]||'#555'}">${t}</span>`).join('')}
-      </div>
-    `;
-  }
-
   html += '</div></div>';
   document.getElementById('catchResults').innerHTML = html;
 }
+
+function scoreBar(label, score, max, color) {
+  const pct = Math.round((score / max) * 100);
+  return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <div style="font-family:monospace;font-size:8px;color:#4a6a54;width:65px;letter-spacing:1px">${label}</div>
+      <div style="flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.4s ease"></div>
+      </div>
+      <div style="font-family:monospace;font-size:8px;color:${color};width:30px;text-align:right">${score}/${max}</div>
+    </div>`;
+}
+
 
 // ─── TEAM EDITOR ─────────────────────────────────────────────
 function renderTeamEditor() {
