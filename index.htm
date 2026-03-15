@@ -27,7 +27,71 @@
   --pixel: 2px;
 }
 
-/* ── GAME SELECTOR ── */
+/* ── MAP ── */
+#pane-map { padding: 0; }
+.map-controls {
+display: flex; gap: 6px; flex-wrap: wrap;
+padding: 10px 12px 8px; background: #060f0a;
+border-bottom: 1px solid #1a4028;
+}
+.map-toggle {
+-webkit-appearance: none; appearance: none;
+font-family: ‘Courier New’, Courier, monospace;
+font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
+padding: 4px 10px; border-radius: 20px; cursor: pointer;
+border: 1px solid; transition: all 0.15s;
+-webkit-tap-highlight-color: transparent;
+}
+.map-toggle.on  { color: #060f0a; }
+.map-toggle.off { background: transparent !important; opacity: 0.45; }
+.map-wrap {
+position: relative; overflow: hidden;
+height: calc(100vh - 280px); min-height: 320px;
+touch-action: none; background: #0a1a2a;
+cursor: grab;
+}
+.map-wrap:active { cursor: grabbing; }
+#map-svg {
+position: absolute; top: 0; left: 0;
+transform-origin: 0 0; will-change: transform;
+user-select: none; -webkit-user-select: none;
+}
+/* Info panel */
+.map-info-panel {
+position: absolute; bottom: 0; left: 0; right: 0;
+background: rgba(6,15,10,0.97);
+border-top: 2px solid #1a4028;
+border-radius: 12px 12px 0 0;
+padding: 14px 16px 20px;
+transform: translateY(100%);
+transition: transform 0.25s ease;
+max-height: 55%; overflow-y: auto;
+z-index: 10;
+}
+.map-info-panel.open { transform: translateY(0); }
+.map-info-close {
+position: absolute; top: 10px; right: 14px;
+background: transparent; border: none; color: #4a6a54;
+font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.map-info-name { font-size: 20px; color: #e8f4ec; letter-spacing: 1px; margin-bottom: 4px; }
+.map-info-type { font-size: 9px; font-family: ‘Courier New’,monospace; letter-spacing: 2px; margin-bottom: 10px; }
+.encounter-row {
+display: flex; align-items: center; gap: 8px;
+padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+font-size: 14px; color: #e8f4ec;
+}
+.encounter-rarity {
+font-family: ‘Courier New’,monospace; font-size: 8px;
+letter-spacing: 1px; padding: 2px 6px; border-radius: 10px;
+margin-left: auto; flex-shrink: 0;
+}
+.rarity-common   { background: rgba(100,200,100,0.15); color: #6cc86c; }
+.rarity-uncommon { background: rgba(100,150,255,0.15); color: #6496ff; }
+.rarity-rare     { background: rgba(255,200,50,0.15);  color: #ffc832; }
+.map-no-data { font-size: 13px; color: #4a6a54; font-style: italic; margin-top: 6px; }
+
+/* ── GAME SELECTOR ── *//* ── GAME SELECTOR ── */
 .game-selector {
 display: flex; gap: 6px; flex-wrap: wrap;
 justify-content: center; margin-bottom: 14px;
@@ -214,7 +278,7 @@ background: linear-gradient(90deg, transparent, #00a86b, #f0c040, #00a86b, trans
 
 /* ── TABS ── */
 .tabs {
-display: grid; grid-template-columns: repeat(3, 1fr);
+display: grid; grid-template-columns: repeat(4, 1fr);
 gap: 4px; margin-bottom: 16px;
 background: #0d2018; border: 2px solid #1a4028;
 border-radius: 4px; padding: 4px;
@@ -627,6 +691,7 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
   <div class="tabs">
     <button class="tab active" id="tab-battle" onclick="switchTab('battle')"><span class="tab-icon">⚔</span><span class="tab-label">BATTLE</span></button>
     <button class="tab inactive" id="tab-catch"  onclick="switchTab('catch')"><span class="tab-icon">🎣</span><span class="tab-label">CATCH?</span></button>
+    <button class="tab inactive" id="tab-map"    onclick="switchTab('map')"><span class="tab-icon">🗺</span><span class="tab-label">MAP</span></button>
     <button class="tab inactive" id="tab-team"   onclick="switchTab('team')"><span class="tab-icon">✎</span><span class="tab-label">MY TEAM</span></button>
   </div>
 
@@ -660,6 +725,25 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
       <div class="suggestions" id="catchSuggs"></div>
     </div>
     <div id="catchResults"></div>
+  </div>
+
+  <!-- ══════ MAP PANE ══════ -->
+
+  <div id="pane-map" style="display:none">
+    <div class="map-controls" id="map-controls">
+      <button class="map-toggle on" id="tog-city"    onclick="toggleLayer('city')"   >🏙 CITIES</button>
+      <button class="map-toggle on" id="tog-route"   onclick="toggleLayer('route')"  >🌿 ROUTES</button>
+      <button class="map-toggle on" id="tog-dungeon" onclick="toggleLayer('dungeon')">🏔 DUNGEONS</button>
+    </div>
+    <div class="map-wrap" id="map-wrap">
+      <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="map-info-panel" id="map-info">
+        <button class="map-info-close" onclick="closeMapInfo()">✕</button>
+        <div class="map-info-name" id="map-info-name"></div>
+        <div class="map-info-type" id="map-info-type"></div>
+        <div id="map-info-encounters"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ══════ TEAM PANE ══════ -->
@@ -1172,6 +1256,8 @@ function applyGameTheme(game) {
 
   // Update input/button/refresh colors
   updateUIColors(game);
+  // Update map toggle colors if map is visible
+  updateMapToggleColors();
   // Re-render game selector
   renderGameSelector();
 }
@@ -1472,7 +1558,7 @@ function teamUncoveredTypes(members) {
 
 // ─── TAB SWITCH ──────────────────────────────────────────────
 function switchTab(tab) {
-  ['battle','catch','team'].forEach(t => {
+  ['battle','catch','map','team'].forEach(t => {
     document.getElementById(`pane-${t}`).style.display = t===tab ? '' : 'none';
     const el = document.getElementById(`tab-${t}`);
     el.className = 'tab ' + (t===tab ? 'active' : 'inactive');
@@ -1488,6 +1574,7 @@ function switchTab(tab) {
     }
   });
   if (tab === 'team') renderTeamEditor();
+  if (tab === 'map') initMap();
 }
 
 // ─── INIT HISTORY DISPLAYS ───────────────────────────────────
@@ -2143,6 +2230,373 @@ function preCacheAllMoves() {
   updateAllMoveDots();
 }
 setTimeout(preCacheAllMoves, 200);
+
+
+// ─── MAP SYSTEM ──────────────────────────────────────────────
+const HOENN_MAP = {
+  viewBox: "0 0 1000 900",
+  water: "#1a3a5c",
+  land:  "#1a3a1a",
+  locations: [
+    // Cities/Towns
+    {type:"city",    name:"Littleroot Town", x:170,y:680,w:70,h:50},
+    {type:"city",    name:"Oldale Town",     x:170,y:540,w:70,h:50},
+    {type:"city",    name:"Petalburg City",  x: 60,y:540,w:70,h:55},
+    {type:"city",    name:"Rustboro City",   x: 55,y:330,w:75,h:60},
+    {type:"city",    name:"Dewford Town",    x:115,y:770,w:65,h:45},
+    {type:"city",    name:"Slateport City",  x:295,y:640,w:75,h:60},
+    {type:"city",    name:"Mauville City",   x:295,y:490,w:75,h:55},
+    {type:"city",    name:"Verdanturf Town", x:185,y:490,w:75,h:50},
+    {type:"city",    name:"Fallarbor Town",  x:185,y:185,w:75,h:50},
+    {type:"city",    name:"Lavaridge Town",  x:185,y:335,w:75,h:50},
+    {type:"city",    name:"Fortree City",    x:500,y:235,w:70,h:50},
+    {type:"city",    name:"Lilycove City",   x:690,y:235,w:80,h:55},
+    {type:"city",    name:"Mossdeep City",   x:790,y:385,w:70,h:50},
+    {type:"city",    name:"Sootopolis City", x:635,y:490,w:80,h:60},
+    {type:"city",    name:"Pacifidlog Town", x:545,y:635,w:75,h:50},
+    {type:"city",    name:"Ever Grande City",x:885,y:280,w:80,h:55},
+    // Routes
+    {type:"route",   name:"Route 101",  x:170,y:600,w:70,h:70},
+    {type:"route",   name:"Route 102",  x: 95,y:540,w:75,h:50},
+    {type:"route",   name:"Route 103",  x:240,y:540,w:90,h:50},
+    {type:"route",   name:"Route 104N", x: 60,y:420,w:70,h:90},
+    {type:"route",   name:"Route 105",  x: 60,y:635,w:70,h:90},
+    {type:"route",   name:"Route 109",  x:295,y:720,w:75,h:80},
+    {type:"route",   name:"Route 110",  x:295,y:555,w:75,h:80},
+    {type:"route",   name:"Route 111",  x:295,y:335,w:75,h:150},
+    {type:"route",   name:"Route 112",  x:185,y:390,w:110,h:45},
+    {type:"route",   name:"Route 113",  x:185,y:235,w:175,h:45},
+    {type:"route",   name:"Route 114",  x:185,y:285,w:75,h:50},
+    {type:"route",   name:"Route 115",  x: 55,y:235,w:75,h:95},
+    {type:"route",   name:"Route 116",  x:130,y:330,w:110,h:45},
+    {type:"route",   name:"Route 117",  x:260,y:490,w:110,h:50},
+    {type:"route",   name:"Route 118",  x:370,y:490,w:130,h:50},
+    {type:"route",   name:"Route 119",  x:500,y:285,w:70,h:145},
+    {type:"route",   name:"Route 120",  x:500,y:235,w:70,h:50},
+    {type:"route",   name:"Route 121",  x:545,y:235,w:145,h:50},
+    {type:"route",   name:"Route 122",  x:635,y:285,w:70,h:90},
+    {type:"route",   name:"Route 123",  x:395,y:490,w:240,h:50},
+    {type:"route",   name:"Route 124",  x:740,y:235,w:70,h:150},
+    {type:"route",   name:"Route 126",  x:635,y:550,w:155,h:90},
+    {type:"route",   name:"Route 127",  x:790,y:435,w:100,h:120},
+    {type:"route",   name:"Route 128",  x:745,y:555,w:145,h:80},
+    {type:"route",   name:"Route 129",  x:620,y:635,w:125,h:60},
+    {type:"route",   name:"Route 130",  x:545,y:635,w:75,h:60},
+    {type:"route",   name:"Route 131",  x:420,y:635,w:125,h:60},
+    {type:"route",   name:"Route 132",  x:295,y:720,w:125,h:60},
+    // Dungeons
+    {type:"dungeon", name:"Petalburg Woods",   x: 60,y:435,w:70,h:55},
+    {type:"dungeon", name:"Rusturf Tunnel",    x:130,y:375,w:55,h:40},
+    {type:"dungeon", name:"Granite Cave",      x: 60,y:770,w:70,h:55},
+    {type:"dungeon", name:"Meteor Falls",      x:130,y:235,w:55,h:50},
+    {type:"dungeon", name:"Mt. Chimney",       x:185,y:285,w:75,h:50},
+    {type:"dungeon", name:"Jagged Pass",       x:260,y:335,w:35,h:50},
+    {type:"dungeon", name:"Fiery Path",        x:260,y:385,w:35,h:55},
+    {type:"dungeon", name:"Mt. Pyre",          x:635,y:375,w:70,h:55},
+    {type:"dungeon", name:"Seafloor Cavern",   x:690,y:635,w:55,h:45},
+    {type:"dungeon", name:"Cave of Origin",    x:635,y:490,w:55,h:50},
+    {type:"dungeon", name:"Sky Pillar",        x:545,y:590,w:55,h:45},
+    {type:"dungeon", name:"Victory Road",      x:885,y:335,w:55,h:50},
+    {type:"dungeon", name:"Safari Zone",       x:740,y:185,w:75,h:50},
+    {type:"dungeon", name:"Shoal Cave",        x:790,y:285,w:55,h:50},
+    {type:"dungeon", name:"New Mauville",      x:370,y:490,w:55,h:50},
+    {type:"dungeon", name:"Desert Ruins",      x:295,y:285,w:55,h:50},
+    {type:"dungeon", name:"Island Cave",       x: 55,y:680,w:55,h:45},
+    {type:"dungeon", name:"Ancient Tomb",      x:500,y:185,w:55,h:50},
+  ]
+};
+
+const ENCOUNTERS = {
+  "Route 101":       [{name:"Zigzagoon",type:"normal",rarity:"common"},{name:"Wurmple",type:"bug",rarity:"common"},{name:"Poochyena",type:"dark",rarity:"common"}],
+  "Route 102":       [{name:"Zigzagoon",type:"normal",rarity:"common"},{name:"Poochyena",type:"dark",rarity:"common"},{name:"Lotad",type:"water",rarity:"uncommon"},{name:"Seedot",type:"grass",rarity:"uncommon"},{name:"Ralts",type:"psychic",rarity:"rare"},{name:"Wurmple",type:"bug",rarity:"common"},{name:"Surskit",type:"bug",rarity:"rare"}],
+  "Route 103":       [{name:"Zigzagoon",type:"normal",rarity:"common"},{name:"Poochyena",type:"dark",rarity:"common"},{name:"Wingull",type:"flying",rarity:"uncommon"}],
+  "Route 104N":      [{name:"Zigzagoon",type:"normal",rarity:"common"},{name:"Poochyena",type:"dark",rarity:"common"},{name:"Taillow",type:"flying",rarity:"uncommon"},{name:"Wingull",type:"flying",rarity:"uncommon"}],
+  "Route 110":       [{name:"Zigzagoon",type:"normal",rarity:"common"},{name:"Plusle",type:"electric",rarity:"uncommon"},{name:"Minun",type:"electric",rarity:"uncommon"},{name:"Electrike",type:"electric",rarity:"common"},{name:"Oddish",type:"grass",rarity:"uncommon"}],
+  "Route 111":       [{name:"Sandshrew",type:"ground",rarity:"common"},{name:"Trapinch",type:"ground",rarity:"uncommon"},{name:"Baltoy",type:"psychic",rarity:"uncommon"},{name:"Cacnea",type:"grass",rarity:"common"}],
+  "Route 112":       [{name:"Numel",type:"fire",rarity:"common"},{name:"Machop",type:"fighting",rarity:"uncommon"}],
+  "Route 113":       [{name:"Spinda",type:"normal",rarity:"common"},{name:"Skarmory",type:"steel",rarity:"uncommon"},{name:"Sandshrew",type:"ground",rarity:"common"}],
+  "Route 114":       [{name:"Lotad",type:"water",rarity:"common"},{name:"Lombre",type:"water",rarity:"uncommon"},{name:"Bagon",type:"dragon",rarity:"rare"},{name:"Zangoose",type:"normal",rarity:"common"},{name:"Seviper",type:"poison",rarity:"common"}],
+  "Route 117":       [{name:"Roselia",type:"grass",rarity:"common"},{name:"Marill",type:"water",rarity:"uncommon"},{name:"Volbeat",type:"bug",rarity:"uncommon"},{name:"Illumise",type:"bug",rarity:"uncommon"}],
+  "Route 119":       [{name:"Oddish",type:"grass",rarity:"common"},{name:"Gloom",type:"grass",rarity:"uncommon"},{name:"Kecleon",type:"normal",rarity:"rare"},{name:"Tropius",type:"grass",rarity:"uncommon"}],
+  "Route 120":       [{name:"Oddish",type:"grass",rarity:"common"},{name:"Absol",type:"dark",rarity:"rare"},{name:"Kecleon",type:"normal",rarity:"rare"},{name:"Marill",type:"water",rarity:"uncommon"}],
+  "Route 121":       [{name:"Shuppet",type:"ghost",rarity:"uncommon"},{name:"Wingull",type:"flying",rarity:"common"},{name:"Vulpix",type:"fire",rarity:"uncommon"}],
+  "Route 123":       [{name:"Oddish",type:"grass",rarity:"common"},{name:"Gloom",type:"grass",rarity:"uncommon"},{name:"Shuppet",type:"ghost",rarity:"uncommon"}],
+  "Petalburg Woods": [{name:"Wurmple",type:"bug",rarity:"common"},{name:"Silcoon",type:"bug",rarity:"uncommon"},{name:"Cascoon",type:"bug",rarity:"uncommon"},{name:"Slakoth",type:"normal",rarity:"common"},{name:"Shroomish",type:"grass",rarity:"uncommon"},{name:"Taillow",type:"flying",rarity:"rare"},{name:"Whismur",type:"normal",rarity:"rare"}],
+  "Rusturf Tunnel":  [{name:"Whismur",type:"normal",rarity:"common"}],
+  "Granite Cave":    [{name:"Zubat",type:"flying",rarity:"common"},{name:"Abra",type:"psychic",rarity:"uncommon"},{name:"Makuhita",type:"fighting",rarity:"common"},{name:"Aron",type:"steel",rarity:"uncommon"},{name:"Sableye",type:"ghost",rarity:"rare"}],
+  "Meteor Falls":    [{name:"Zubat",type:"flying",rarity:"common"},{name:"Golbat",type:"flying",rarity:"uncommon"},{name:"Bagon",type:"dragon",rarity:"rare"}],
+  "Mt. Chimney":     [{name:"Numel",type:"fire",rarity:"common"}],
+  "Jagged Pass":     [{name:"Numel",type:"fire",rarity:"common"},{name:"Machop",type:"fighting",rarity:"uncommon"},{name:"Spoink",type:"psychic",rarity:"uncommon"}],
+  "Safari Zone":     [{name:"Pikachu",type:"electric",rarity:"uncommon"},{name:"Heracross",type:"bug",rarity:"uncommon"},{name:"Pinsir",type:"bug",rarity:"uncommon"},{name:"Girafarig",type:"psychic",rarity:"rare"},{name:"Doduo",type:"flying",rarity:"common"},{name:"Rhyhorn",type:"ground",rarity:"common"},{name:"Natu",type:"psychic",rarity:"uncommon"},{name:"Wobbuffet",type:"psychic",rarity:"uncommon"}],
+  "Mt. Pyre":        [{name:"Shuppet",type:"ghost",rarity:"common"},{name:"Duskull",type:"ghost",rarity:"common"},{name:"Vulpix",type:"fire",rarity:"uncommon"}],
+  "Shoal Cave":      [{name:"Zubat",type:"flying",rarity:"common"},{name:"Spheal",type:"ice",rarity:"common"},{name:"Snorunt",type:"ice",rarity:"uncommon"}],
+  "Victory Road":    [{name:"Golbat",type:"flying",rarity:"common"},{name:"Hariyama",type:"fighting",rarity:"uncommon"},{name:"Medicham",type:"psychic",rarity:"uncommon"},{name:"Geodude",type:"rock",rarity:"common"},{name:"Graveler",type:"rock",rarity:"uncommon"},{name:"Lairon",type:"steel",rarity:"uncommon"},{name:"Mawile",type:"steel",rarity:"rare"},{name:"Whismur",type:"normal",rarity:"common"}],
+  "Seafloor Cavern": [{name:"Zubat",type:"flying",rarity:"common"},{name:"Golbat",type:"flying",rarity:"uncommon"},{name:"Tentacool",type:"water",rarity:"common"}],
+  "Sky Pillar":      [{name:"Claydol",type:"psychic",rarity:"common"},{name:"Banette",type:"ghost",rarity:"common"},{name:"Altaria",type:"flying",rarity:"uncommon"},{name:"Rayquaza",type:"dragon",rarity:"rare"}],
+};
+
+// Map state
+let mapState = {
+  scale: 1, tx: 0, ty: 0,
+  layers: { city: true, route: true, dungeon: true },
+  dragging: false, lastX: 0, lastY: 0,
+  pinching: false, lastDist: 0,
+  game: null
+};
+
+function initMap() {
+  const game = currentGame ? currentGame.id : 'emerald';
+  if (mapState.game === game && document.getElementById('map-svg').children.length > 0) {
+    updateMapColors();
+    return;
+  }
+  mapState.game = game;
+  mapState.scale = 1; mapState.tx = 0; mapState.ty = 0;
+  renderMapSVG();
+  setupMapGestures();
+  updateMapToggleColors();
+}
+
+function getMapData() {
+  // For now all games use Hoenn - extend later
+  return HOENN_MAP;
+}
+
+function renderMapSVG() {
+  const map = getMapData();
+  const game = currentGame || { accent:'#00a86b', border:'#1a4028', gold:'#f0c040' };
+  const svg = document.getElementById('map-svg');
+  const wrap = document.getElementById('map-wrap');
+
+  // Set SVG size
+  const W = 1000, H = 900;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  // Scale to fit screen initially
+  const wrapW = wrap.clientWidth || 360;
+  mapState.scale = wrapW / W;
+  mapState.tx = 0;
+  mapState.ty = 0;
+  applyMapTransform();
+
+  // Colors per type
+  const colors = {
+    city:    { fill:'#1a3a1a', stroke: game.accent,  label: game.accent  },
+    route:   { fill:'#142814', stroke: game.border,   label:'#6a8a6a'    },
+    dungeon: { fill:'#1a1a2a', stroke: game.gold,     label: game.gold   },
+  };
+
+  let svgContent = `
+    <!-- Ocean background -->
+    <rect width="${W}" height="${H}" fill="#0a1e2e"/>
+    <!-- Land mass (simplified Hoenn shape) -->
+    <rect x="40" y="170" width="320" height="720" rx="8" fill="#0d2010" opacity="0.6"/>
+    <rect x="280" y="170" width="480" height="560" rx="8" fill="#0d2010" opacity="0.6"/>
+    <rect x="680" y="170" width="280" height="480" rx="8" fill="#0d2010" opacity="0.6"/>
+    <!-- Grid lines -->
+    ${Array.from({length:20},(_,i)=>`<line x1="${i*50}" y1="0" x2="${i*50}" y2="${H}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
+    ${Array.from({length:18},(_,i)=>`<line x1="0" y1="${i*50}" x2="${W}" y2="${i*50}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
+  `;
+
+  // Draw locations
+  map.locations.forEach((loc, idx) => {
+    const c = colors[loc.type];
+    const layer = `layer-${loc.type}`;
+    const display = mapState.layers[loc.type] ? '' : 'display:none';
+    const rx = loc.type === 'city' ? 6 : loc.type === 'dungeon' ? 3 : 2;
+    const fontSize = loc.type === 'city' ? 10 : 8;
+    const nameShort = loc.name.replace('Route ','R.').replace(' Town','').replace(' City','').replace(' Cave','').replace(' Falls','');
+
+    const fw = loc.type === 'city' ? 'bold' : 'normal';
+    const sw = loc.type === 'city' ? 2 : 1;
+    svgContent += `
+    <g class="map-loc" data-layer="${layer}" data-name="${loc.name}" data-type="${loc.type}" style="${display}">
+      <rect x="${loc.x}" y="${loc.y}" width="${loc.w}" height="${loc.h}"
+            fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}"
+            rx="${rx}" opacity="0.9"/>
+      <text x="${loc.x + loc.w/2}" y="${loc.y + loc.h/2 + fontSize*0.35}"
+            text-anchor="middle" fill="${c.label}"
+            font-family="Courier New" font-size="${fontSize}"
+            font-weight="${fw}">${nameShort}</text>
+      <rect x="${loc.x}" y="${loc.y}" width="${loc.w}" height="${loc.h}"
+            fill="transparent" rx="${rx}" style="cursor:pointer"
+            onclick="mapLocTap(this)"/>
+    </g>`;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+function mapLocTap(el) {
+  const g = el.closest ? el.closest('[data-name]') : el.parentElement;
+  const name = g ? g.getAttribute('data-name') : '';
+  const type = g ? g.getAttribute('data-type') : '';
+  const panel = document.getElementById('map-info');
+  const nameEl = document.getElementById('map-info-name');
+  const typeEl = document.getElementById('map-info-type');
+  const encEl  = document.getElementById('map-info-encounters');
+
+  nameEl.textContent = name;
+  const typeLabels = { city:'TOWN / CITY', route:'ROUTE', dungeon:'DUNGEON / AREA' };
+  typeEl.textContent = typeLabels[type] || type.toUpperCase();
+  typeEl.style.color = type === 'city' ? currentGame?.accent || '#00a86b'
+                     : type === 'dungeon' ? currentGame?.gold || '#f0c040'
+                     : '#6a8a6a';
+
+  const encs = ENCOUNTERS[name];
+  if (encs && encs.length) {
+    encEl.innerHTML = '<div style="font-family:'Courier New',monospace;font-size:9px;color:#4a6a54;letter-spacing:2px;margin-bottom:8px">WILD POKÉMON</div>' +
+      encs.map(e => {
+        const dotColor = TC[e.type] || '#555';
+        return `<div class="encounter-row">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+          <span>${e.name}</span>
+          <span class="encounter-rarity rarity-${e.rarity}">${e.rarity.toUpperCase()}</span>
+        </div>`;
+      }).join('');
+  } else {
+    encEl.innerHTML = '<div class="map-no-data">No encounter data yet</div>';
+  }
+
+  panel.classList.add('open');
+}
+
+function closeMapInfo() {
+  document.getElementById('map-info').classList.remove('open');
+}
+
+function toggleLayer(type) {
+  mapState.layers[type] = !mapState.layers[type];
+  const btn = document.getElementById('tog-' + type);
+  btn.className = 'map-toggle ' + (mapState.layers[type] ? 'on' : 'off');
+  updateMapToggleColors();
+  // Show/hide elements
+  document.querySelectorAll(`[data-layer="layer-${type}"]`).forEach(el => {
+    el.style.display = mapState.layers[type] ? '' : 'none';
+  });
+}
+
+function updateMapToggleColors() {
+  const game = currentGame || { accent:'#00a86b', gold:'#f0c040', border:'#1a4028' };
+  const toggles = {
+    'tog-city':    { color: game.accent, border: game.accent },
+    'tog-route':   { color: '#6a8a6a',  border: '#1a4028' },
+    'tog-dungeon': { color: game.gold,  border: game.gold },
+  };
+  Object.entries(toggles).forEach(([id, style]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.classList.contains('on')) {
+      el.style.background = style.color + '33';
+      el.style.borderColor = style.color;
+      el.style.color = style.color;
+    } else {
+      el.style.background = 'transparent';
+      el.style.borderColor = style.border;
+      el.style.color = style.color;
+    }
+  });
+}
+
+function updateMapColors() {
+  updateMapToggleColors();
+}
+
+function applyMapTransform() {
+  const svg = document.getElementById('map-svg');
+  if (svg) svg.style.transform = `translate(${mapState.tx}px,${mapState.ty}px) scale(${mapState.scale})`;
+}
+
+function setupMapGestures() {
+  const wrap = document.getElementById('map-wrap');
+  if (!wrap || wrap._mapListenersAdded) return;
+  wrap._mapListenersAdded = true;
+
+  let startX, startY, startTx, startTy;
+  let pinchStartDist, pinchStartScale;
+
+  function dist(t) {
+    const dx = t[0].clientX - t[1].clientX;
+    const dy = t[0].clientY - t[1].clientY;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function clampTranslate() {
+    const W = 1000, H = 900;
+    const sw = wrap.clientWidth, sh = wrap.clientHeight;
+    const maxTx = 0, minTx = sw - W * mapState.scale;
+    const maxTy = 0, minTy = sh - H * mapState.scale;
+    mapState.tx = clamp(mapState.tx, Math.min(minTx,0), Math.max(maxTx,0));
+    mapState.ty = clamp(mapState.ty, Math.min(minTy,0), Math.max(maxTy,0));
+  }
+
+  wrap.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      pinchStartDist = dist(e.touches);
+      pinchStartScale = mapState.scale;
+      mapState.pinching = true;
+    } else if (e.touches.length === 1) {
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      startTx = mapState.tx; startTy = mapState.ty;
+      mapState.dragging = true; mapState.pinching = false;
+    }
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (mapState.pinching && e.touches.length === 2) {
+      const newDist = dist(e.touches);
+      const newScale = clamp(pinchStartScale * (newDist / pinchStartDist), 0.5, 4);
+      // Zoom toward center of pinch
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - wrap.getBoundingClientRect().top;
+      const ratio = newScale / mapState.scale;
+      mapState.tx = cx - ratio * (cx - mapState.tx);
+      mapState.ty = cy - ratio * (cy - mapState.ty);
+      mapState.scale = newScale;
+      clampTranslate();
+      applyMapTransform();
+    } else if (mapState.dragging && e.touches.length === 1) {
+      mapState.tx = startTx + (e.touches[0].clientX - startX);
+      mapState.ty = startTy + (e.touches[0].clientY - startY);
+      clampTranslate();
+      applyMapTransform();
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchend', e => {
+    if (e.touches.length < 2) mapState.pinching = false;
+    if (e.touches.length === 0) mapState.dragging = false;
+  }, { passive: true });
+
+  // Double tap to zoom
+  let lastTap = 0;
+  wrap.addEventListener('touchend', e => {
+    if (e.changedTouches.length !== 1) return;
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      const t = e.changedTouches[0];
+      const rect = wrap.getBoundingClientRect();
+      const cx = t.clientX - rect.left;
+      const cy = t.clientY - rect.top;
+      if (mapState.scale < 1.8) {
+        const newScale = 2.5;
+        mapState.tx = cx - (newScale/mapState.scale) * (cx - mapState.tx);
+        mapState.ty = cy - (newScale/mapState.scale) * (cy - mapState.ty);
+        mapState.scale = newScale;
+      } else {
+        const wrapW = wrap.clientWidth;
+        mapState.scale = wrapW / 1000;
+        mapState.tx = 0; mapState.ty = 0;
+      }
+      clampTranslate();
+      applyMapTransform();
+    }
+    lastTap = now;
+  }, { passive: true });
+}
 
 function saveTeam() {
   try {
