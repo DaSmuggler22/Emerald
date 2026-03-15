@@ -8,83 +8,88 @@
 <meta http-equiv="Pragma" content="no-cache"/>
 <title>Team Advisor</title>
 <style>
-
+:root {
+  --sp-xs:4px; --sp-s:8px; --sp-m:12px; --sp-l:16px; --sp-xl:24px;
+  --radius-pill:20px; --radius-card:10px; --radius-sm:6px;
+  --dur-fast:150ms; --dur-mid:250ms; --dur-slow:400ms;
+  --font-mono:'Courier New',Courier,monospace;
+}
 /* ── MAP ── */
 #pane-map { padding: 0; }
 .map-controls {
-display: flex; gap: 5px; flex-wrap: wrap;
-padding: 8px 10px 7px; background: rgba(4,8,4,0.97);
-border-bottom: 1px solid rgba(0,168,107,0.15);
+  display: flex; gap: 5px; flex-wrap: wrap;
+  padding: 8px 10px 7px; background: rgba(4,8,4,0.97);
+  border-bottom: 1px solid rgba(0,168,107,0.15);
 }
 .map-toggle {
--webkit-appearance: none; appearance: none;
-font-family: var(–font-mono);
-font-size: 8px; font-weight: bold; letter-spacing: 1px;
-padding: 5px 11px; border-radius: var(–radius-pill); cursor: pointer;
-border: 1px solid; transition: all var(–dur-fast) ease;
--webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  -webkit-appearance: none; appearance: none;
+  font-family: var(--font-mono);
+  font-size: 8px; font-weight: bold; letter-spacing: 1px;
+  padding: 5px 11px; border-radius: var(--radius-pill); cursor: pointer;
+  border: 1px solid; transition: all var(--dur-fast) ease;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
 }
 .map-toggle.on  { color: #060f0a; box-shadow: 0 1px 6px rgba(0,0,0,0.3); }
 .map-toggle.off { background: transparent !important; opacity: 0.38; }
 .map-toggle:active { transform: scale(0.95); }
 .map-wrap {
-position: relative; overflow: hidden;
-height: calc(100vh - 318px); min-height: 280px;
-touch-action: none;
--webkit-user-select: none; user-select: none;
-background: #061420;
-cursor: grab;
-overscroll-behavior: none;
+  position: relative; overflow: hidden;
+  height: calc(100vh - 318px); min-height: 280px;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  background: #061420;
+  cursor: grab;
+  overscroll-behavior: none;
 }
 #map-svg { transition: none; }
 .map-wrap:active { cursor: grabbing; }
 .map-wrap::after {
-content: ‘’;
-position: absolute; inset: 0;
-background: repeating-linear-gradient(
-0deg,
-transparent,
-transparent 3px,
-rgba(0,0,0,0.04) 3px,
-rgba(0,0,0,0.04) 4px
-);
-pointer-events: none; z-index: 4;
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.04) 3px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none; z-index: 4;
 }
 #map-svg {
-position: absolute; top: 0; left: 0;
-transform-origin: 0 0; will-change: transform;
-user-select: none; -webkit-user-select: none;
+  position: absolute; top: 0; left: 0;
+  transform-origin: 0 0; will-change: transform;
+  user-select: none; -webkit-user-select: none;
 }
 /* Info panel */
 .map-info-panel {
-position: fixed; bottom: 0; left: 0; right: 0;
-background: rgba(6,15,10,0.99);
-border-top: 2px solid #1a4028;
-border-radius: 16px 16px 0 0;
-padding: 16px 16px 36px;
-transform: translateY(100%);
-transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
-max-height: 60vh; overflow-y: auto;
-z-index: 2000;
-box-shadow: 0 -8px 40px rgba(0,0,0,0.8);
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(6,15,10,0.99);
+  border-top: 2px solid #1a4028;
+  border-radius: 16px 16px 0 0;
+  padding: 16px 16px 36px;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+  max-height: 60vh; overflow-y: auto;
+  z-index: 2000;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.8);
 }
 .map-info-panel.open { transform: translateY(0); }
 .map-info-close {
-position: absolute; top: 10px; right: 14px;
-background: transparent; border: none; color: #4a6a54;
-font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  position: absolute; top: 10px; right: 14px;
+  background: transparent; border: none; color: #4a6a54;
+  font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .map-info-name { font-size: 22px; font-weight:bold; color: #e8f4ec; letter-spacing: 2px; margin-bottom: 2px; }
-.map-info-type { font-size: 9px; font-family: var(–font-mono); letter-spacing: 2px; margin-bottom: 12px; opacity:0.7; }
+.map-info-type { font-size: 9px; font-family: var(--font-mono); letter-spacing: 2px; margin-bottom: 12px; opacity:0.7; }
 .encounter-row {
-display: flex; align-items: center; gap: 8px;
-padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-font-size: 14px; color: #e8f4ec;
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px; color: #e8f4ec;
 }
 .encounter-rarity {
-font-family: var(–font-mono); font-size: 8px;
-letter-spacing: 1px; padding: 2px 8px; border-radius: var(–radius-pill);
-margin-left: auto; flex-shrink: 0; border: 1px solid;
+  font-family: var(--font-mono); font-size: 8px;
+  letter-spacing: 1px; padding: 2px 8px; border-radius: var(--radius-pill);
+  margin-left: auto; flex-shrink: 0; border: 1px solid;
 }
 .rarity-common   { background: rgba(100,200,100,0.1); color: #6cc86c; border-color: rgba(108,200,108,0.3); }
 .rarity-uncommon { background: rgba(100,150,255,0.1); color: #6496ff; border-color: rgba(100,150,255,0.3); }
@@ -2422,6 +2427,27 @@ const ENCOUNTERS = {
   "Victory Road":    [{name:"Golbat",type:"flying",rarity:"common"},{name:"Hariyama",type:"fighting",rarity:"uncommon"},{name:"Medicham",type:"psychic",rarity:"uncommon"},{name:"Geodude",type:"rock",rarity:"common"},{name:"Graveler",type:"rock",rarity:"uncommon"},{name:"Lairon",type:"steel",rarity:"uncommon"},{name:"Mawile",type:"steel",rarity:"rare"},{name:"Whismur",type:"normal",rarity:"common"}],
   "Seafloor Cavern": [{name:"Zubat",type:"flying",rarity:"common"},{name:"Golbat",type:"flying",rarity:"uncommon"},{name:"Tentacool",type:"water",rarity:"common"}],
   "Sky Pillar":      [{name:"Claydol",type:"psychic",rarity:"common"},{name:"Banette",type:"ghost",rarity:"common"},{name:"Altaria",type:"flying",rarity:"uncommon"},{name:"Rayquaza",type:"dragon",rarity:"rare"}],
+  "Route 105": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Pelipper","type":"flying","rarity":"uncommon"}],
+  "Route 109": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Pelipper","type":"flying","rarity":"uncommon"},{"name":"Magikarp","type":"water","rarity":"common"}],
+  "Route 115": [{"name":"Swablu","type":"flying","rarity":"common"},{"name":"Jigglypuff","type":"normal","rarity":"uncommon"},{"name":"Taillow","type":"flying","rarity":"common"},{"name":"Tentacool","type":"water","rarity":"common"}],
+  "Route 116": [{"name":"Nincada","type":"bug","rarity":"common"},{"name":"Skitty","type":"normal","rarity":"uncommon"},{"name":"Whismur","type":"normal","rarity":"common"},{"name":"Zigzagoon","type":"normal","rarity":"common"}],
+  "Route 118": [{"name":"Electrike","type":"electric","rarity":"common"},{"name":"Manectric","type":"electric","rarity":"uncommon"},{"name":"Linoone","type":"normal","rarity":"common"},{"name":"Kecleon","type":"normal","rarity":"rare"}],
+  "Route 122": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Pelipper","type":"flying","rarity":"uncommon"}],
+  "Route 124": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Clamperl","type":"water","rarity":"uncommon"},{"name":"Chinchou","type":"water","rarity":"uncommon"},{"name":"Relicanth","type":"water","rarity":"rare"}],
+  "Route 125": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Spheal","type":"ice","rarity":"uncommon"}],
+  "Route 126": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Clamperl","type":"water","rarity":"uncommon"},{"name":"Chinchou","type":"water","rarity":"uncommon"}],
+  "Route 127": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Pelipper","type":"flying","rarity":"uncommon"},{"name":"Wailmer","type":"water","rarity":"uncommon"},{"name":"Wailord","type":"water","rarity":"rare"}],
+  "Route 128": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Wailmer","type":"water","rarity":"uncommon"},{"name":"Sharpedo","type":"water","rarity":"uncommon"}],
+  "Route 129": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wailmer","type":"water","rarity":"common"},{"name":"Wailord","type":"water","rarity":"rare"}],
+  "Route 130": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wingull","type":"flying","rarity":"common"},{"name":"Wynaut","type":"psychic","rarity":"rare"}],
+  "Route 131": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wailmer","type":"water","rarity":"common"},{"name":"Sharpedo","type":"water","rarity":"uncommon"}],
+  "Route 132": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Wailmer","type":"water","rarity":"common"},{"name":"Horsea","type":"water","rarity":"uncommon"}],
+  "Fiery Path": [{"name":"Koffing","type":"poison","rarity":"common"},{"name":"Torkoal","type":"fire","rarity":"common"},{"name":"Machop","type":"fighting","rarity":"uncommon"}],
+  "Cave of Origin": [{"name":"Zubat","type":"flying","rarity":"common"},{"name":"Golbat","type":"flying","rarity":"uncommon"},{"name":"Kyogre","type":"water","rarity":"rare"},{"name":"Groudon","type":"ground","rarity":"rare"}],
+  "New Mauville": [{"name":"Voltorb","type":"electric","rarity":"common"},{"name":"Electrode","type":"electric","rarity":"uncommon"},{"name":"Magnemite","type":"electric","rarity":"common"},{"name":"Magneton","type":"electric","rarity":"uncommon"}],
+  "Desert Ruins": [{"name":"Regirock","type":"rock","rarity":"rare"}],
+  "Island Cave": [{"name":"Regice","type":"ice","rarity":"rare"}],
+  "Ancient Tomb": [{"name":"Registeel","type":"steel","rarity":"rare"}],
 };
 
 // Map state
@@ -2675,6 +2701,8 @@ function mapLocTap(el) {
   const g = el.closest ? el.closest('[data-name]') : el.parentElement;
   const name = g ? g.getAttribute('data-name') : '';
   const type = g ? g.getAttribute('data-type') : '';
+  // Don't open if this layer is toggled off
+  if (type && !mapState.layers[type]) return;
   const panel = document.getElementById('map-info');
   const nameEl = document.getElementById('map-info-name');
   const typeEl = document.getElementById('map-info-type');
@@ -3119,10 +3147,10 @@ function showPathInfo(frm, to, reqType, reqLabel) {
           display:inline-block;padding:2px 10px;font-family:monospace;font-size:9px;
           font-weight:bold;color:${col};letter-spacing:1px;margin-bottom:6px">${tag}</div>
         <div style="font-size:12px;color:#7a9a84">
-          ${{hm:'Need this HM move + badge to use outside battle.',
-             badge:'Earn all required badges first.',
-             item:'Find this key item in the world.',
-             story:'Unlocks automatically during the story.'}[reqType]||''}
+          ${({hm:'Need this HM + badge to use outside battle.',
+             badge:'Earn all required gym badges.',
+             item:'Find this key item first.',
+             story:'Unlocks during the story.'})[reqType]||''}
         </div>
       </div>
     </div>`;
@@ -3463,370 +3491,43 @@ const KANTO_PATHS = [
 ];
 
 const KANTO_ENCOUNTERS = {
-  "Route 1": [
-    {
-      "name": "Pidgey",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Rattata",
-      "type": "normal",
-      "rarity": "common"
-    }
-  ],
-  "Route 2": [
-    {
-      "name": "Pidgey",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Rattata",
-      "type": "normal",
-      "rarity": "common"
-    },
-    {
-      "name": "Caterpie",
-      "type": "bug",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Weedle",
-      "type": "bug",
-      "rarity": "uncommon"
-    }
-  ],
-  "Route 3": [
-    {
-      "name": "Pidgey",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Jigglypuff",
-      "type": "normal",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Mankey",
-      "type": "fighting",
-      "rarity": "common"
-    },
-    {
-      "name": "Spearow",
-      "type": "flying",
-      "rarity": "common"
-    }
-  ],
-  "Route 4": [
-    {
-      "name": "Spearow",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Rattata",
-      "type": "normal",
-      "rarity": "common"
-    },
-    {
-      "name": "Ekans",
-      "type": "poison",
-      "rarity": "uncommon"
-    }
-  ],
-  "Route 9": [
-    {
-      "name": "Rattata",
-      "type": "normal",
-      "rarity": "common"
-    },
-    {
-      "name": "Spearow",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Ekans",
-      "type": "poison",
-      "rarity": "uncommon"
-    }
-  ],
-  "Route 24": [
-    {
-      "name": "Caterpie",
-      "type": "bug",
-      "rarity": "common"
-    },
-    {
-      "name": "Metapod",
-      "type": "bug",
-      "rarity": "common"
-    },
-    {
-      "name": "Abra",
-      "type": "psychic",
-      "rarity": "rare"
-    },
-    {
-      "name": "Oddish",
-      "type": "grass",
-      "rarity": "uncommon"
-    }
-  ],
-  "Route 25": [
-    {
-      "name": "Bellsprout",
-      "type": "grass",
-      "rarity": "common"
-    },
-    {
-      "name": "Abra",
-      "type": "psychic",
-      "rarity": "rare"
-    },
-    {
-      "name": "Oddish",
-      "type": "grass",
-      "rarity": "uncommon"
-    }
-  ],
-  "Viridian Forest": [
-    {
-      "name": "Caterpie",
-      "type": "bug",
-      "rarity": "common"
-    },
-    {
-      "name": "Metapod",
-      "type": "bug",
-      "rarity": "common"
-    },
-    {
-      "name": "Weedle",
-      "type": "bug",
-      "rarity": "common"
-    },
-    {
-      "name": "Kakuna",
-      "type": "bug",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Pikachu",
-      "type": "electric",
-      "rarity": "rare"
-    }
-  ],
-  "Mt. Moon": [
-    {
-      "name": "Zubat",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Geodude",
-      "type": "rock",
-      "rarity": "common"
-    },
-    {
-      "name": "Clefairy",
-      "type": "normal",
-      "rarity": "rare"
-    },
-    {
-      "name": "Paras",
-      "type": "bug",
-      "rarity": "uncommon"
-    }
-  ],
-  "Rock Tunnel": [
-    {
-      "name": "Zubat",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Geodude",
-      "type": "rock",
-      "rarity": "common"
-    },
-    {
-      "name": "Onix",
-      "type": "rock",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Machop",
-      "type": "fighting",
-      "rarity": "uncommon"
-    }
-  ],
-  "Safari Zone": [
-    {
-      "name": "Nidoran\u2640",
-      "type": "poison",
-      "rarity": "common"
-    },
-    {
-      "name": "Nidoran\u2642",
-      "type": "poison",
-      "rarity": "common"
-    },
-    {
-      "name": "Scyther",
-      "type": "bug",
-      "rarity": "rare"
-    },
-    {
-      "name": "Pinsir",
-      "type": "bug",
-      "rarity": "rare"
-    },
-    {
-      "name": "Chansey",
-      "type": "normal",
-      "rarity": "rare"
-    },
-    {
-      "name": "Kangaskhan",
-      "type": "normal",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Tauros",
-      "type": "normal",
-      "rarity": "uncommon"
-    }
-  ],
-  "Seafoam Islands": [
-    {
-      "name": "Zubat",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Seel",
-      "type": "water",
-      "rarity": "common"
-    },
-    {
-      "name": "Dewgong",
-      "type": "water",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Articuno",
-      "type": "ice",
-      "rarity": "rare"
-    }
-  ],
-  "Pokemon Tower": [
-    {
-      "name": "Gastly",
-      "type": "ghost",
-      "rarity": "common"
-    },
-    {
-      "name": "Haunter",
-      "type": "ghost",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Cubone",
-      "type": "ground",
-      "rarity": "uncommon"
-    }
-  ],
-  "Power Plant": [
-    {
-      "name": "Voltorb",
-      "type": "electric",
-      "rarity": "common"
-    },
-    {
-      "name": "Magnemite",
-      "type": "electric",
-      "rarity": "common"
-    },
-    {
-      "name": "Electabuzz",
-      "type": "electric",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Zapdos",
-      "type": "electric",
-      "rarity": "rare"
-    }
-  ],
-  "Cerulean Cave": [
-    {
-      "name": "Golbat",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Parasect",
-      "type": "bug",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Ditto",
-      "type": "normal",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Mewtwo",
-      "type": "psychic",
-      "rarity": "rare"
-    }
-  ],
-  "Victory Road": [
-    {
-      "name": "Zubat",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Geodude",
-      "type": "rock",
-      "rarity": "common"
-    },
-    {
-      "name": "Graveler",
-      "type": "rock",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Venomoth",
-      "type": "bug",
-      "rarity": "uncommon"
-    },
-    {
-      "name": "Machoke",
-      "type": "fighting",
-      "rarity": "uncommon"
-    }
-  ],
-  "Route 23": [
-    {
-      "name": "Ekans",
-      "type": "poison",
-      "rarity": "common"
-    },
-    {
-      "name": "Fearow",
-      "type": "flying",
-      "rarity": "common"
-    },
-    {
-      "name": "Ditto",
-      "type": "normal",
-      "rarity": "uncommon"
-    }
-  ]
+  "Route 1": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Rattata","type":"normal","rarity":"common"}],
+  "Route 2": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Caterpie","type":"bug","rarity":"uncommon"},{"name":"Weedle","type":"bug","rarity":"uncommon"}],
+  "Route 3": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Jigglypuff","type":"normal","rarity":"uncommon"},{"name":"Mankey","type":"fighting","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"}],
+  "Route 4": [{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Ekans","type":"poison","rarity":"uncommon"}],
+  "Route 9": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Ekans","type":"poison","rarity":"uncommon"}],
+  "Route 24": [{"name":"Caterpie","type":"bug","rarity":"common"},{"name":"Metapod","type":"bug","rarity":"common"},{"name":"Abra","type":"psychic","rarity":"rare"},{"name":"Oddish","type":"grass","rarity":"uncommon"}],
+  "Route 25": [{"name":"Bellsprout","type":"grass","rarity":"common"},{"name":"Abra","type":"psychic","rarity":"rare"},{"name":"Oddish","type":"grass","rarity":"uncommon"},{"name":"Pikachu","type":"electric","rarity":"rare"}],
+  "Viridian Forest": [{"name":"Caterpie","type":"bug","rarity":"common"},{"name":"Metapod","type":"bug","rarity":"common"},{"name":"Weedle","type":"bug","rarity":"common"},{"name":"Kakuna","type":"bug","rarity":"uncommon"},{"name":"Pikachu","type":"electric","rarity":"rare"}],
+  "Mt. Moon": [{"name":"Zubat","type":"flying","rarity":"common"},{"name":"Geodude","type":"rock","rarity":"common"},{"name":"Clefairy","type":"normal","rarity":"rare"},{"name":"Paras","type":"bug","rarity":"uncommon"}],
+  "Rock Tunnel": [{"name":"Zubat","type":"flying","rarity":"common"},{"name":"Geodude","type":"rock","rarity":"common"},{"name":"Onix","type":"rock","rarity":"uncommon"},{"name":"Machop","type":"fighting","rarity":"uncommon"}],
+  "Safari Zone": [{"name":"Nidoran\u2640","type":"poison","rarity":"common"},{"name":"Nidoran\u2642","type":"poison","rarity":"common"},{"name":"Scyther","type":"bug","rarity":"rare"},{"name":"Pinsir","type":"bug","rarity":"rare"},{"name":"Chansey","type":"normal","rarity":"rare"},{"name":"Kangaskhan","type":"normal","rarity":"uncommon"},{"name":"Tauros","type":"normal","rarity":"uncommon"}],
+  "Seafoam Islands": [{"name":"Zubat","type":"flying","rarity":"common"},{"name":"Seel","type":"water","rarity":"common"},{"name":"Dewgong","type":"water","rarity":"uncommon"},{"name":"Articuno","type":"ice","rarity":"rare"}],
+  "Pokemon Tower": [{"name":"Gastly","type":"ghost","rarity":"common"},{"name":"Haunter","type":"ghost","rarity":"uncommon"},{"name":"Cubone","type":"ground","rarity":"uncommon"}],
+  "Power Plant": [{"name":"Voltorb","type":"electric","rarity":"common"},{"name":"Magnemite","type":"electric","rarity":"common"},{"name":"Electabuzz","type":"electric","rarity":"uncommon"},{"name":"Zapdos","type":"electric","rarity":"rare"}],
+  "Cerulean Cave": [{"name":"Golbat","type":"flying","rarity":"common"},{"name":"Parasect","type":"bug","rarity":"uncommon"},{"name":"Ditto","type":"normal","rarity":"uncommon"},{"name":"Mewtwo","type":"psychic","rarity":"rare"}],
+  "Victory Road": [{"name":"Zubat","type":"flying","rarity":"common"},{"name":"Geodude","type":"rock","rarity":"common"},{"name":"Graveler","type":"rock","rarity":"uncommon"},{"name":"Venomoth","type":"bug","rarity":"uncommon"},{"name":"Machoke","type":"fighting","rarity":"uncommon"}],
+  "Route 23": [{"name":"Ekans","type":"poison","rarity":"common"},{"name":"Fearow","type":"flying","rarity":"common"},{"name":"Ditto","type":"normal","rarity":"uncommon"}],
+  "Route 5": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Meowth","type":"normal","rarity":"common"},{"name":"Mankey","type":"fighting","rarity":"uncommon"},{"name":"Bellsprout","type":"grass","rarity":"uncommon"}],
+  "Route 6": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Meowth","type":"normal","rarity":"common"},{"name":"Bellsprout","type":"grass","rarity":"uncommon"}],
+  "Route 7": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Meowth","type":"normal","rarity":"common"},{"name":"Growlithe","type":"fire","rarity":"uncommon"},{"name":"Vulpix","type":"fire","rarity":"uncommon"}],
+  "Route 8": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Meowth","type":"normal","rarity":"common"},{"name":"Growlithe","type":"fire","rarity":"uncommon"},{"name":"Electabuzz","type":"electric","rarity":"rare"}],
+  "Route 10": [{"name":"Voltorb","type":"electric","rarity":"common"},{"name":"Magnemite","type":"electric","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"uncommon"}],
+  "Route 11": [{"name":"Ekans","type":"poison","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Drowzee","type":"psychic","rarity":"uncommon"}],
+  "Route 12": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Oddish","type":"grass","rarity":"common"},{"name":"Gloom","type":"grass","rarity":"uncommon"},{"name":"Weepinbell","type":"grass","rarity":"uncommon"}],
+  "Route 13": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Oddish","type":"grass","rarity":"common"},{"name":"Ditto","type":"normal","rarity":"uncommon"},{"name":"Scyther","type":"bug","rarity":"rare"}],
+  "Route 14": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Weepinbell","type":"grass","rarity":"common"},{"name":"Ditto","type":"normal","rarity":"uncommon"}],
+  "Route 15": [{"name":"Pidgey","type":"flying","rarity":"common"},{"name":"Gloom","type":"grass","rarity":"common"},{"name":"Ditto","type":"normal","rarity":"uncommon"}],
+  "Route 16": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Doduo","type":"flying","rarity":"uncommon"}],
+  "Route 17": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Doduo","type":"flying","rarity":"uncommon"},{"name":"Fearow","type":"flying","rarity":"uncommon"}],
+  "Route 18": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Doduo","type":"flying","rarity":"uncommon"}],
+  "Route 19": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Tentacruel","type":"water","rarity":"uncommon"}],
+  "Route 20": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Tentacruel","type":"water","rarity":"uncommon"},{"name":"Slowpoke","type":"water","rarity":"uncommon"}],
+  "Route 21": [{"name":"Tentacool","type":"water","rarity":"common"},{"name":"Tangela","type":"grass","rarity":"uncommon"},{"name":"Slowpoke","type":"water","rarity":"uncommon"}],
+  "Route 22": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Spearow","type":"flying","rarity":"common"},{"name":"Nidoran\u2640","type":"poison","rarity":"uncommon"},{"name":"Nidoran\u2642","type":"poison","rarity":"uncommon"}],
+  "Silph Co.": [{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Drowzee","type":"psychic","rarity":"common"},{"name":"Kadabra","type":"psychic","rarity":"uncommon"},{"name":"Lapras","type":"water","rarity":"rare"}],
+  "Pokemon Mansion": [{"name":"Grimer","type":"poison","rarity":"common"},{"name":"Koffing","type":"poison","rarity":"common"},{"name":"Rattata","type":"normal","rarity":"common"},{"name":"Ditto","type":"normal","rarity":"uncommon"}],
+  "Diglett Cave": [{"name":"Diglett","type":"ground","rarity":"common"},{"name":"Dugtrio","type":"ground","rarity":"uncommon"}]
 };
 
 const KANTO_GYMS = [
@@ -3849,8 +3550,8 @@ function renderBadgeOverlay() {
   const TYPE_C = { hm:'#4a9eff', badge:'#ffd700', item:'#ff9900', story:'#cc44ff' };
   let html = '';
 
-  // Path badge tap targets
-  svg.querySelectorAll('rect[data-badge="1"]').forEach(rect => {
+  // Path badge tap targets (only if path layer active)
+  if (mapState.layers.path) svg.querySelectorAll('rect[data-badge="1"]').forEach(rect => {
     const svgX = parseFloat(rect.getAttribute('x'));
     const svgY = parseFloat(rect.getAttribute('y'));
     const svgW = parseFloat(rect.getAttribute('width'));
@@ -3872,8 +3573,8 @@ function renderBadgeOverlay() {
       onclick="showPathInfo('${ef}','${et}','${req}','${el}')"></div>`;
   });
 
-  // Gym tap targets
-  svg.querySelectorAll('rect[data-gym="1"]').forEach(rect => {
+  // Gym tap targets (only if gym layer active)
+  if (mapState.layers.gym) svg.querySelectorAll('rect[data-gym="1"]').forEach(rect => {
     const svgX = parseFloat(rect.getAttribute('x'));
     const svgY = parseFloat(rect.getAttribute('y'));
     const svgW = parseFloat(rect.getAttribute('width'));
