@@ -477,21 +477,23 @@ padding: 2px 0; text-transform: uppercase; -webkit-appearance: none;
 .nickname-input:focus { border-bottom-color: #f0c040; }
 
 /* Pokémon autocomplete */
-.poke-suggest-wrap { position: relative; flex: 1; }
+.poke-suggest-wrap { position: relative; flex: 1; overflow: visible; }
 .poke-suggestions {
-position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 999;
 background: #0d2018; border: 1px solid #1a4028;
 border-radius: 0 0 8px 8px; overflow: hidden;
-box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-margin-top: 2px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+-webkit-overflow-scrolling: touch;
 }
 .poke-suggestion-item {
 display: flex; align-items: center; gap: 10px;
-padding: 8px 12px; cursor: pointer; font-size: 14px;
+padding: 11px 12px; cursor: pointer; font-size: 14px;
 color: #c8e4d0; border-bottom: 1px solid rgba(255,255,255,0.04);
 -webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+user-select: none; -webkit-user-select: none;
 }
-.poke-suggestion-item:active { background: rgba(0,168,107,0.15); }
+.poke-suggestion-item:active { background: rgba(0,168,107,0.2); }
 .poke-sug-sprite { width: 28px; height: 28px; image-rendering: pixelated; flex-shrink: 0; }
 .poke-sug-name { flex: 1; }
 .poke-sug-num  { font-family: monospace; font-size: 10px; color: #4a6a54; }
@@ -3266,14 +3268,16 @@ async function fetchPokeSuggestions(query, suggEl, inputEl, selectFn) {
     .slice(0, 7);
   if (!matches.length) { suggEl.style.display = 'none'; return; }
   // Get dex numbers from URLs
+  const _sid = suggEl.id;
   suggEl.innerHTML = matches.map(p => {
     const id = p.url.split('/').filter(Boolean).pop();
     const displayName = p.name.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
     const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+    const safeName = displayName.replace(/\\/g,'').replace(/'/g,"\'");
     return `<div class="poke-suggestion-item"
-      onmousedown="event.preventDefault()"
-      onclick="selectPokeSuggestion(this.dataset.name,${JSON.stringify(suggEl.id)},${JSON.stringify(null)},event)"
-      data-name="${displayName}">
+      onmousedown="event.preventDefault();selectPokeSuggestion('${safeName}','${_sid}',null,event)"
+      ontouchstart="event.preventDefault();selectPokeSuggestion('${safeName}','${_sid}',null,event)"
+      onclick="selectPokeSuggestion('${safeName}','${_sid}',null,event)">
       <img class="poke-sug-sprite" src="${spriteUrl}" alt="" loading="lazy"/>
       <span class="poke-sug-name">${displayName}</span>
       <span class="poke-sug-num">#${String(id).padStart(3,'0')}</span>
@@ -3286,10 +3290,13 @@ async function fetchPokeSuggestions(query, suggEl, inputEl, selectFn) {
 }
 
 function selectPokeSuggestion(name, suggId, _unused, event) {
+  if (event) event.preventDefault();
   const sugg = document.getElementById(suggId);
-  if (!sugg) return;
+  if (!sugg || sugg._selecting) return;
+  sugg._selecting = true;
+  setTimeout(() => { if (sugg) sugg._selecting = false; }, 500);
   sugg.style.display = 'none';
-  if (sugg._inputEl) sugg._inputEl.value = name;
+  if (sugg._inputEl) { sugg._inputEl.value = name; sugg._inputEl.blur(); }
   if (sugg._selectFn) sugg._selectFn(name);
 }
 
@@ -3297,7 +3304,7 @@ function hidePokesugg(suggId) {
   setTimeout(() => {
     const sugg = document.getElementById(suggId);
     if (sugg) sugg.style.display = 'none';
-  }, 150);
+  }, 300);
 }
 
 
