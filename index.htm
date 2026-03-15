@@ -30,27 +30,43 @@
 /* ── MAP ── */
 #pane-map { padding: 0; }
 .map-controls {
-display: flex; gap: 6px; flex-wrap: wrap;
-padding: 10px 12px 8px; background: #060f0a;
-border-bottom: 1px solid #1a4028;
+display: flex; gap: 5px; flex-wrap: wrap;
+padding: 8px 10px 7px; background: rgba(4,10,4,0.95);
+border-bottom: 1px solid rgba(0,168,107,0.2);
 }
 .map-toggle {
 -webkit-appearance: none; appearance: none;
 font-family: ‘Courier New’, Courier, monospace;
-font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
-padding: 4px 10px; border-radius: 20px; cursor: pointer;
-border: 1px solid; transition: all 0.15s;
+font-size: 8px; font-weight: bold; letter-spacing: 1px;
+padding: 5px 11px; border-radius: 20px; cursor: pointer;
+border: 1px solid; transition: all 0.18s ease;
 -webkit-tap-highlight-color: transparent;
 }
 .map-toggle.on  { color: #060f0a; }
-.map-toggle.off { background: transparent !important; opacity: 0.45; }
+.map-toggle.off { background: transparent !important; opacity: 0.4; }
 .map-wrap {
 position: relative; overflow: hidden;
-height: calc(100vh - 280px); min-height: 320px;
-touch-action: none; background: #0a1a2a;
+height: calc(100vh - 268px); min-height: 320px;
+touch-action: none;
+-webkit-user-select: none; user-select: none;
+background: #061420;
 cursor: grab;
+overscroll-behavior: none;
 }
+#map-svg { transition: none; }
 .map-wrap:active { cursor: grabbing; }
+.map-wrap::after {
+content: ‘’;
+position: absolute; inset: 0;
+background: repeating-linear-gradient(
+0deg,
+transparent,
+transparent 3px,
+rgba(0,0,0,0.04) 3px,
+rgba(0,0,0,0.04) 4px
+);
+pointer-events: none; z-index: 4;
+}
 #map-svg {
 position: absolute; top: 0; left: 0;
 transform-origin: 0 0; will-change: transform;
@@ -234,21 +250,7 @@ text-align: center;
 padding: 24px 0 16px;
 position: relative;
 }
-.header-gem {
-display: flex; justify-content: center; align-items: center; gap: 10px;
-margin-bottom: 6px;
-}
-.gem {
-width: 14px; height: 14px;
-background: linear-gradient(135deg, #00ff88, #00a86b, #004d30);
-clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-animation: gemPulse 2s ease-in-out infinite;
-filter: drop-shadow(0 0 6px #00ff88);
-}
-@keyframes gemPulse {
-0%,100% { filter: drop-shadow(0 0 4px #00ff88); }
-50%     { filter: drop-shadow(0 0 12px #00ff88); }
-}
+
 .header-title {
 font-family: ‘Courier New’, Courier, monospace;
 font-size: 14px; color: #f0c040;
@@ -258,15 +260,15 @@ text-shadow: 2px 2px 0 #c89a20, 0 0 20px rgba(240,192,64,0.4);
 letter-spacing: 3px; line-height: 1.6;
 }
 .header-sub {
-font-size: 18px; color: #00a86b;
-letter-spacing: 3px; margin-top: 2px;
+font-size: 24px; font-weight: bold; color: #00a86b;
+letter-spacing: 4px; margin-top: 6px;
 }
 .header-version {
 display: inline-block;
 background: #00a86b;
 color: #060f0a;
 font-family: ‘Courier New’, Courier, monospace;
-font-size: 7px; padding: 3px 8px; border-radius: 2px;
+font-size: 8px; padding: 3px 10px; border-radius: 2px;
 margin-top: 6px; letter-spacing: 1px;
 }
 
@@ -474,6 +476,26 @@ padding: 2px 0; text-transform: uppercase; -webkit-appearance: none;
 .nickname-input::placeholder { color: #2a4a38; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 14px; }
 .nickname-input:focus { border-bottom-color: #f0c040; }
 
+/* Pokémon autocomplete */
+.poke-suggest-wrap { position: relative; flex: 1; }
+.poke-suggestions {
+position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+background: #0d2018; border: 1px solid #1a4028;
+border-radius: 0 0 8px 8px; overflow: hidden;
+box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+margin-top: 2px;
+}
+.poke-suggestion-item {
+display: flex; align-items: center; gap: 10px;
+padding: 8px 12px; cursor: pointer; font-size: 14px;
+color: #c8e4d0; border-bottom: 1px solid rgba(255,255,255,0.04);
+-webkit-tap-highlight-color: transparent;
+}
+.poke-suggestion-item:active { background: rgba(0,168,107,0.15); }
+.poke-sug-sprite { width: 28px; height: 28px; image-rendering: pixelated; flex-shrink: 0; }
+.poke-sug-name { flex: 1; }
+.poke-sug-num  { font-family: monospace; font-size: 10px; color: #4a6a54; }
+
 /* Move autocomplete */
 .move-wrap { position: relative; flex: 1; }
 .move-suggestions {
@@ -557,7 +579,7 @@ padding: 9px 12px; cursor: pointer; width: 100%;
 /* Moves */
 .moves-list { display: flex; flex-direction: column; gap: 6px; }
 .move-row { display: flex; align-items: center; gap: 6px; }
-.move-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.move-dot { width: 26px; height: 13px; flex-shrink: 0; display:inline-flex; align-items:center; }
 .move-input {
 flex: 1; background: #060f0a; border: 2px solid #1a4028;
 border-radius: 3px; padding: 7px 10px; color: #e8f4ec;
@@ -667,14 +689,59 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
 
   <!-- HEADER -->
 
+  <!-- ══ PIXEL ART DEFS ══ -->
+
+  <svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
+    <defs>
+      <!-- Pokéball 14x14 -->
+      <g id="pokeball">
+        <rect x="4" y="0" width="6" height="1" fill="#111"/>
+        <rect x="2" y="1" width="2" height="1" fill="#111"/>
+        <rect x="10" y="1" width="2" height="1" fill="#111"/>
+        <rect x="1" y="2" width="1" height="1" fill="#111"/>
+        <rect x="12" y="2" width="1" height="1" fill="#111"/>
+        <rect x="0" y="3" width="1" height="7" fill="#111"/>
+        <rect x="13" y="3" width="1" height="7" fill="#111"/>
+        <rect x="4" y="1" width="6" height="1" fill="#dd1111"/>
+        <rect x="2" y="2" width="10" height="1" fill="#dd1111"/>
+        <rect x="1" y="3" width="12" height="3" fill="#dd1111"/>
+        <rect x="1" y="6" width="12" height="2" fill="#222"/>
+        <rect x="4" y="6" width="6" height="2" fill="#444"/>
+        <rect x="5" y="6" width="4" height="2" fill="#fff"/>
+        <rect x="6" y="6" width="2" height="2" fill="#eee"/>
+        <rect x="1" y="8" width="12" height="3" fill="#f0f0f0"/>
+        <rect x="2" y="11" width="10" height="1" fill="#f0f0f0"/>
+        <rect x="4" y="12" width="6" height="1" fill="#f0f0f0"/>
+        <rect x="2" y="12" width="2" height="1" fill="#222"/>
+        <rect x="10" y="12" width="2" height="1" fill="#222"/>
+        <rect x="4" y="13" width="6" height="1" fill="#222"/>
+        <rect x="1" y="11" width="1" height="1" fill="#222"/>
+        <rect x="12" y="11" width="1" height="1" fill="#222"/>
+      </g>
+      <!-- Type badges 24x12 each -->
+      <g id="type-normal">  <rect width="24" height="12" rx="3" fill="#9099A1"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">NRM</text></g>
+      <g id="type-fire">    <rect width="24" height="12" rx="3" fill="#FF4422"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">FIR</text></g>
+      <g id="type-water">   <rect width="24" height="12" rx="3" fill="#3399FF"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">WAT</text></g>
+      <g id="type-grass">   <rect width="24" height="12" rx="3" fill="#33BB33"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">GRS</text></g>
+      <g id="type-electric"><rect width="24" height="12" rx="3" fill="#DDAA00"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">ELC</text></g>
+      <g id="type-ice">     <rect width="24" height="12" rx="3" fill="#55BBDD"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">ICE</text></g>
+      <g id="type-fighting"><rect width="24" height="12" rx="3" fill="#BB2200"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">FGT</text></g>
+      <g id="type-poison">  <rect width="24" height="12" rx="3" fill="#AA44BB"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">PSN</text></g>
+      <g id="type-ground">  <rect width="24" height="12" rx="3" fill="#CCAA33"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">GRD</text></g>
+      <g id="type-flying">  <rect width="24" height="12" rx="3" fill="#7788DD"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">FLY</text></g>
+      <g id="type-psychic"> <rect width="24" height="12" rx="3" fill="#FF5599"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">PSY</text></g>
+      <g id="type-bug">     <rect width="24" height="12" rx="3" fill="#88AA11"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">BUG</text></g>
+      <g id="type-rock">    <rect width="24" height="12" rx="3" fill="#AAAA44"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">RCK</text></g>
+      <g id="type-ghost">   <rect width="24" height="12" rx="3" fill="#664488"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">GHT</text></g>
+      <g id="type-dragon">  <rect width="24" height="12" rx="3" fill="#6655DD"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">DRG</text></g>
+      <g id="type-dark">    <rect width="24" height="12" rx="3" fill="#554433"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">DRK</text></g>
+      <g id="type-steel">   <rect width="24" height="12" rx="3" fill="#9999BB"/><rect width="24" height="6" rx="3" fill="rgba(255,255,255,0.18)"/><text x="12" y="9" text-anchor="middle" fill="white" font-family="monospace" font-size="7" font-weight="bold">STL</text></g>
+    </defs>
+  </svg>
+
   <div class="header">
-    <div class="header-gem">
-      <div class="gem"></div>
-      <div class="header-title">TEAM ADVISOR</div>
-      <div class="gem"></div>
-    </div>
     <div class="header-sub" id="gameTitle">POKÉMON EMERALD</div>
-    <div class="header-version" id="gameRegion">HOENN REGION</div>
+    <div class="header-version" id="gameRegion">HOENN REGION ✦ TEAM ADVISOR</div>
     <div style="margin-top:8px">
       <button id="refresh-btn" onclick="location.reload()" style="-webkit-appearance:none;appearance:none;background:transparent;border:1px solid #1a4028;border-radius:3px;color:#4a6a54;font-family:'Courier New',Courier,monospace;font-size:10px;padding:4px 12px;cursor:pointer;letter-spacing:1px;">↺ REFRESH</button>
     </div>
@@ -701,7 +768,13 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
     <div class="panel">
       <div class="panel-label">ENEMY LOOKUP</div>
       <div class="search-row">
-        <input class="poke-input" id="battleInput" placeholder="e.g. Geodude" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <div class="poke-suggest-wrap">
+          <input class="poke-input" id="battleInput" placeholder="e.g. Geodude" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            oninput="onPokeInput(this,'battle-sugg',v=>doBattleLookup(v))"
+            onblur="hidePokesugg('battle-sugg')"
+            onkeydown="if(event.key==='Enter')doBattleLookup()"/>
+          <div class="poke-suggestions" id="battle-sugg" style="display:none"></div>
+        </div>
         <button class="poke-btn" onclick="doBattleLookup()">GO!</button>
       </div>
       <div id="battleError" class="poke-error" style="display:none"></div>
@@ -717,7 +790,13 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
     <div class="panel">
       <div class="panel-label">SHOULD I CATCH IT?</div>
       <div class="search-row">
-        <input class="poke-input" id="catchInput" placeholder="e.g. Ralts" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <div class="poke-suggest-wrap">
+          <input class="poke-input" id="catchInput" placeholder="e.g. Ralts" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            oninput="onPokeInput(this,'catch-sugg',v=>doCatchAnalysis(v))"
+            onblur="hidePokesugg('catch-sugg')"
+            onkeydown="if(event.key==='Enter')doCatchAnalysis()"/>
+          <div class="poke-suggestions" id="catch-sugg" style="display:none"></div>
+        </div>
         <button class="poke-btn" onclick="doCatchAnalysis()">CHECK!</button>
       </div>
       <div id="catchError" class="poke-error" style="display:none"></div>
@@ -731,12 +810,49 @@ color: #4a6a54; font-size: 15px; letter-spacing: 2px; line-height: 2.2;
 
   <div id="pane-map" style="display:none">
     <div class="map-controls" id="map-controls">
-      <button class="map-toggle on" id="tog-city"    onclick="toggleLayer('city')"   >🏙 CITIES</button>
-      <button class="map-toggle on" id="tog-route"   onclick="toggleLayer('route')"  >🌿 ROUTES</button>
-      <button class="map-toggle on" id="tog-dungeon" onclick="toggleLayer('dungeon')">🏔 DUNGEONS</button>
+      <button class="map-toggle on" id="tog-city"    onclick="toggleLayer('city')"   >◆ CITIES</button>
+      <button class="map-toggle on" id="tog-route"   onclick="toggleLayer('route')"  >▬ ROUTES</button>
+      <button class="map-toggle on" id="tog-dungeon" onclick="toggleLayer('dungeon')">▲ DUNGEONS</button>
+      <button class="map-toggle on" id="tog-gym"     onclick="toggleLayer('gym')"    >⚑ GYMS</button>
+      <button class="map-toggle on" id="tog-path"    onclick="toggleLayer('path')"   >⟿ PATHS</button>
     </div>
     <div class="map-wrap" id="map-wrap">
       <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <!-- Legend overlay -->
+      <div id="map-legend" style="
+        position:absolute; bottom:10px; left:8px;
+        background:rgba(4,8,4,0.92);
+        border:1px solid rgba(0,168,107,0.3);
+        border-radius:10px; padding:9px 12px;
+        font-family:monospace; font-size:8px;
+        letter-spacing:0.8px; line-height:1.9;
+        pointer-events:none; z-index:5;
+        backdrop-filter:blur(4px);
+        box-shadow:0 4px 20px rgba(0,0,0,0.6);
+      ">
+        <div style="color:#00a86b;letter-spacing:2px;font-size:7px;margin-bottom:5px;font-weight:bold">PATH KEY</div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#2d5a3d" stroke-width="2" stroke-linecap="round"/></svg>
+          <span style="color:#5a8a64">OPEN</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+          <span style="color:#4a9eff">HM MOVE</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#ffd700" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+          <span style="color:#ffd700">BADGE</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#ff9900" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+          <span style="color:#ff9900">KEY ITEM</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#cc44ff" stroke-width="2" stroke-dasharray="5,3" stroke-linecap="round"/></svg>
+          <span style="color:#cc44ff">STORY</span>
+        </div>
+        <div style="color:#2d4a3d;margin-top:5px;font-size:6.5px;letter-spacing:0.5px">TAP LABEL TO LEARN MORE</div>
+      </div>
       <div class="map-info-panel" id="map-info">
         <button class="map-info-close" onclick="closeMapInfo()">✕</button>
         <div class="map-info-name" id="map-info-name"></div>
@@ -1025,8 +1141,6 @@ function getMoveType(moveName) {
   try {
     const cached = JSON.parse(localStorage.getItem('emerald_move_cache') || '{}');
     Object.assign(moveTypeCache, cached);
-    // Debug: log key moves
-    console.log('Cache loaded. tackle='+cached['tackle']+' vine-whip='+cached['vine-whip']+' growl='+cached['growl']+' total='+Object.keys(cached).length);
   } catch(e) { console.log('Cache load error:',e); }
 })();
 
@@ -1227,12 +1341,6 @@ function applyGameTheme(game) {
   if (titleEl) titleEl.textContent = game.title;
   if (regionEl) regionEl.textContent = game.region;
   titleEl.style.color = game.accent;
-
-  // Update gem colors
-  document.querySelectorAll('.gem').forEach(gem => {
-    gem.style.background = `linear-gradient(135deg, ${game.gem}, ${game.accent}, ${game.bg})`;
-    gem.style.filter = `drop-shadow(0 0 6px ${game.gem})`;
-  });
 
   // Update all tabs with correct game colors
   document.querySelectorAll('.tab').forEach(t => {
@@ -1461,16 +1569,13 @@ function updateAllMoveDots() {
       const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
       if (dot) {
         const mt = getMoveType(m);
-        if (!mt) {
-          dot.style.background = 'transparent';
-          dot.style.border = '1px dashed rgba(255,255,255,0.2)';
-        } else if (mt === '—') {
-          dot.style.background = 'rgba(255,255,255,0.12)';
-          dot.style.border = '1px solid rgba(255,255,255,0.2)';
+        let svg;
+        if (!mt || mt === '—') {
+          svg = `<svg width="26" height="13"><rect width="26" height="13" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/><text x="13" y="9.5" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="6">${mt==='—'?'STS':'???'}</text></svg>`;
         } else {
-          dot.style.background = TC[mt] || '#888';
-          dot.style.border = '1px solid rgba(255,255,255,0.1)';
+          svg = `<svg width="26" height="13"><use href="#type-${mt}"/></svg>`;
         }
+        dot.innerHTML = svg;
       }
     });
   });
@@ -1574,7 +1679,13 @@ function switchTab(tab) {
     }
   });
   if (tab === 'team') renderTeamEditor();
-  if (tab === 'map') initMap();
+  if (tab === 'map') {
+    initMap();
+  } else {
+    // Clean up map gesture listeners when leaving map
+    const wrap = document.getElementById('map-wrap');
+    if (wrap && wrap._cleanupGestures) wrap._cleanupGestures();
+  }
 }
 
 // ─── INIT HISTORY DISPLAYS ───────────────────────────────────
@@ -1586,7 +1697,7 @@ document.getElementById('catchInput').addEventListener('keydown', e => { if(e.ke
 
 // ─── BATTLE TAB ──────────────────────────────────────────────
 function doBattleLookup() {
-  const v = document.getElementById('battleInput').value.trim();
+  const v = arguments[0] || document.getElementById('battleInput').value.trim();
   if (v) fetchAndRenderBattle(v);
 }
 function quickBattle(name) {
@@ -1654,17 +1765,15 @@ function renderBattle(enemy) {
       else if (mv.eff >= 2)  indicator = '<span style="color:#4cff72;font-size:11px">2×</span> ';
       else if (mv.eff > 0 && mv.eff < 1) indicator = '<span style="color:#ff9900;font-size:11px">½×</span> ';
       else if (mv.eff === 0) indicator = '<span style="color:#555;font-size:11px">0×</span> ';
-      // Dot color: typed moves get type color, status get faint, unknown get dashed
-      let dotStyle;
-      if (!mv.type) {
-        dotStyle = 'background:transparent;border:1px dashed rgba(255,255,255,0.2)';
-      } else if (!mv.isDamage) {
-        dotStyle = 'background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2)';
+      const mt2 = mv.type;
+      let dotSVG;
+      if (!mt2 || mt2 === '—' || !mv.isDamage) {
+        dotSVG = `<svg width="26" height="13"><rect width="26" height="13" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/><text x="13" y="9.5" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="6">STS</text></svg>`;
       } else {
-        dotStyle = 'background:' + (TC[mv.type] || '#888');
+        dotSVG = `<svg width="26" height="13"><use href="#type-${mt2}"/></svg>`;
       }
-      return `<div style="display:flex;align-items:center;gap:5px;margin:2px 0;opacity:${mv.isDamage?'1':'0.6'}">
-        <div style="width:7px;height:7px;border-radius:50%;flex-shrink:0;${dotStyle}"></div>
+      return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0;opacity:${mv.isDamage?'1':'0.55'}">
+        ${dotSVG}
         <span>${indicator}${mv.name}</span>
       </div>`;
     }).join('');
@@ -1697,7 +1806,7 @@ function renderBattle(enemy) {
 
 // ─── CATCH ANALYSIS ──────────────────────────────────────────
 function doCatchAnalysis() {
-  const v = document.getElementById('catchInput').value.trim();
+  const v = arguments[0] || document.getElementById('catchInput').value.trim();
   if (v) fetchAndRenderCatch(v);
 }
 function quickCatch(name) {
@@ -1875,7 +1984,7 @@ function buildMemberCard(p, i) {
       const cls = isCur ? 'current' : isNext ? 'available' : '';
       const arrow = ei > 0 ? `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
         <span class="evo-arrow">▶</span>
-        ${e.evoLabel ? `<span style="font-family:'Courier New',Courier,monospace;font-size:8px;color:${isNext?'#f0c040':'#4a6a54'};letter-spacing:0.5px;white-space:nowrap">${e.evoLabel}</span>` : ''}
+        ${e.evoLabel ? `<span style="font-family:monospace;font-size:9px;color:${isNext?'#f0c040':'#4a6a54'};letter-spacing:0.5px;white-space:nowrap">${e.evoLabel}</span>` : ''}
       </div>` : '';
       return `${arrow}<div class="evo-step ${cls}" onclick="evolveSlot(${i},${ei})">
         <img src="${spriteUrl(e.id)}" alt="${e.name}"/>
@@ -1892,18 +2001,15 @@ function buildMemberCard(p, i) {
   // Moves
   const movesHtml = p.moves.map((m, mi) => {
     const mt = getMoveType(m);
-    // Status moves: dim dot with border. Damage moves: solid colored dot. Unknown: dashed border
-    let dotStyle;
-    if (!mt) {
-      dotStyle = 'background:transparent;border:1px dashed rgba(255,255,255,0.2)'; // unknown
-    } else if (mt === '—') {
-      dotStyle = 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2)'; // status
+    let dotSVGt;
+    if (!mt || mt === '—') {
+      dotSVGt = `<svg width="26" height="13"><rect width="26" height="13" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/><text x="13" y="9.5" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="6">${mt==='—'?'STS':'???'}</text></svg>`;
     } else {
-      dotStyle = 'background:' + (TC[mt]||'#888'); // damage move - solid type color
+      dotSVGt = `<svg width="26" height="13"><use href="#type-${mt}"/></svg>`;
     }
     return `
       <div class="move-row">
-        <div class="move-dot" id="dot-${i}-${mi}" style="${dotStyle}"></div>
+        <div class="move-dot" id="dot-${i}-${mi}">${dotSVGt}</div>
         <div class="move-wrap">
           <input class="move-input" value="${m}" placeholder="Move name"
             id="move-input-${i}-${mi}"
@@ -1945,11 +2051,15 @@ function buildMemberCard(p, i) {
         <div class="ed-section">
           <div class="ed-label">SWAP POKÉMON</div>
           <div class="swap-row">
-            <input class="poke-input" placeholder="Search..." value="${es.swapInput}"
-              id="swap-input-${i}"
-              oninput="editorState[${i}].swapInput=this.value"
-              onkeydown="if(event.key==='Enter')searchSwap(${i})"
-              autocorrect="off" autocapitalize="off" spellcheck="false"/>
+            <div class="poke-suggest-wrap">
+              <input class="poke-input" placeholder="Search..." value="${es.swapInput}"
+                id="swap-input-${i}"
+                oninput="editorState[${i}].swapInput=this.value;onPokeInput(this,'swap-sugg-${i}',v=>{editorState[${i}].swapInput=v;const el=document.getElementById('swap-input-${i}');if(el)el.value=v;searchSwap(${i});})"
+                onblur="hidePokesugg('swap-sugg-${i}')"
+                onkeydown="if(event.key==='Enter')searchSwap(${i})"
+                autocorrect="off" autocapitalize="off" spellcheck="false"/>
+              <div class="poke-suggestions" id="swap-sugg-${i}" style="display:none"></div>
+            </div>
             <button class="poke-btn-gray" onclick="searchSwap(${i})">${es.swapLoading?'...':'FIND'}</button>
           </div>
           ${es.swapError ? `<div class="poke-error">${es.swapError}</div>` : ''}
@@ -2089,16 +2199,13 @@ function finalizeMove(slotIdx, moveIdx, val) {
   // Update dot color immediately
   const dot = document.getElementById('dot-' + slotIdx + '-' + moveIdx);
   if (dot) {
-    if (!mt) {
-      dot.style.background = 'transparent';
-      dot.style.border = '1px dashed rgba(255,255,255,0.2)';
-    } else if (mt === '—') {
-      dot.style.background = 'rgba(255,255,255,0.12)';
-      dot.style.border = '1px solid rgba(255,255,255,0.2)';
+    let svg;
+    if (!mt || mt === '—') {
+      svg = `<svg width="26" height="13"><rect width="26" height="13" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/><text x="13" y="9.5" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="monospace" font-size="6">${mt==='—'?'STS':'???'}</text></svg>`;
     } else {
-      dot.style.background = TC[mt] || '#888';
-      dot.style.border = '1px solid rgba(255,255,255,0.1)';
+      svg = `<svg width="26" height="13"><use href="#type-${mt}"/></svg>`;
     }
+    dot.innerHTML = svg;
   }
   // If not in hardcoded dict, fall back to API fetch
   if (!mt) {
@@ -2234,75 +2341,71 @@ setTimeout(preCacheAllMoves, 200);
 
 // ─── MAP SYSTEM ──────────────────────────────────────────────
 const HOENN_MAP = {
-  viewBox: "0 0 1000 900",
-  water: "#1a3a5c",
-  land:  "#1a3a1a",
+  viewBox: "0 0 820 760",
   locations: [
-    // Cities/Towns
-    {type:"city",    name:"Littleroot Town", x:170,y:680,w:70,h:50},
-    {type:"city",    name:"Oldale Town",     x:170,y:540,w:70,h:50},
-    {type:"city",    name:"Petalburg City",  x: 60,y:540,w:70,h:55},
-    {type:"city",    name:"Rustboro City",   x: 55,y:330,w:75,h:60},
-    {type:"city",    name:"Dewford Town",    x:115,y:770,w:65,h:45},
-    {type:"city",    name:"Slateport City",  x:295,y:640,w:75,h:60},
-    {type:"city",    name:"Mauville City",   x:295,y:490,w:75,h:55},
-    {type:"city",    name:"Verdanturf Town", x:185,y:490,w:75,h:50},
-    {type:"city",    name:"Fallarbor Town",  x:185,y:185,w:75,h:50},
-    {type:"city",    name:"Lavaridge Town",  x:185,y:335,w:75,h:50},
-    {type:"city",    name:"Fortree City",    x:500,y:235,w:70,h:50},
-    {type:"city",    name:"Lilycove City",   x:690,y:235,w:80,h:55},
-    {type:"city",    name:"Mossdeep City",   x:790,y:385,w:70,h:50},
-    {type:"city",    name:"Sootopolis City", x:635,y:490,w:80,h:60},
-    {type:"city",    name:"Pacifidlog Town", x:545,y:635,w:75,h:50},
-    {type:"city",    name:"Ever Grande City",x:885,y:280,w:80,h:55},
-    // Routes
-    {type:"route",   name:"Route 101",  x:170,y:600,w:70,h:70},
-    {type:"route",   name:"Route 102",  x: 95,y:540,w:75,h:50},
-    {type:"route",   name:"Route 103",  x:240,y:540,w:90,h:50},
-    {type:"route",   name:"Route 104N", x: 60,y:420,w:70,h:90},
-    {type:"route",   name:"Route 105",  x: 60,y:635,w:70,h:90},
-    {type:"route",   name:"Route 109",  x:295,y:720,w:75,h:80},
-    {type:"route",   name:"Route 110",  x:295,y:555,w:75,h:80},
-    {type:"route",   name:"Route 111",  x:295,y:335,w:75,h:150},
-    {type:"route",   name:"Route 112",  x:185,y:390,w:110,h:45},
-    {type:"route",   name:"Route 113",  x:185,y:235,w:175,h:45},
-    {type:"route",   name:"Route 114",  x:185,y:285,w:75,h:50},
-    {type:"route",   name:"Route 115",  x: 55,y:235,w:75,h:95},
-    {type:"route",   name:"Route 116",  x:130,y:330,w:110,h:45},
-    {type:"route",   name:"Route 117",  x:260,y:490,w:110,h:50},
-    {type:"route",   name:"Route 118",  x:370,y:490,w:130,h:50},
-    {type:"route",   name:"Route 119",  x:500,y:285,w:70,h:145},
-    {type:"route",   name:"Route 120",  x:500,y:235,w:70,h:50},
-    {type:"route",   name:"Route 121",  x:545,y:235,w:145,h:50},
-    {type:"route",   name:"Route 122",  x:635,y:285,w:70,h:90},
-    {type:"route",   name:"Route 123",  x:395,y:490,w:240,h:50},
-    {type:"route",   name:"Route 124",  x:740,y:235,w:70,h:150},
-    {type:"route",   name:"Route 126",  x:635,y:550,w:155,h:90},
-    {type:"route",   name:"Route 127",  x:790,y:435,w:100,h:120},
-    {type:"route",   name:"Route 128",  x:745,y:555,w:145,h:80},
-    {type:"route",   name:"Route 129",  x:620,y:635,w:125,h:60},
-    {type:"route",   name:"Route 130",  x:545,y:635,w:75,h:60},
-    {type:"route",   name:"Route 131",  x:420,y:635,w:125,h:60},
-    {type:"route",   name:"Route 132",  x:295,y:720,w:125,h:60},
-    // Dungeons
-    {type:"dungeon", name:"Petalburg Woods",   x: 60,y:435,w:70,h:55},
-    {type:"dungeon", name:"Rusturf Tunnel",    x:130,y:375,w:55,h:40},
-    {type:"dungeon", name:"Granite Cave",      x: 60,y:770,w:70,h:55},
-    {type:"dungeon", name:"Meteor Falls",      x:130,y:235,w:55,h:50},
-    {type:"dungeon", name:"Mt. Chimney",       x:185,y:285,w:75,h:50},
-    {type:"dungeon", name:"Jagged Pass",       x:260,y:335,w:35,h:50},
-    {type:"dungeon", name:"Fiery Path",        x:260,y:385,w:35,h:55},
-    {type:"dungeon", name:"Mt. Pyre",          x:635,y:375,w:70,h:55},
-    {type:"dungeon", name:"Seafloor Cavern",   x:690,y:635,w:55,h:45},
-    {type:"dungeon", name:"Cave of Origin",    x:635,y:490,w:55,h:50},
-    {type:"dungeon", name:"Sky Pillar",        x:545,y:590,w:55,h:45},
-    {type:"dungeon", name:"Victory Road",      x:885,y:335,w:55,h:50},
-    {type:"dungeon", name:"Safari Zone",       x:740,y:185,w:75,h:50},
-    {type:"dungeon", name:"Shoal Cave",        x:790,y:285,w:55,h:50},
-    {type:"dungeon", name:"New Mauville",      x:370,y:490,w:55,h:50},
-    {type:"dungeon", name:"Desert Ruins",      x:295,y:285,w:55,h:50},
-    {type:"dungeon", name:"Island Cave",       x: 55,y:680,w:55,h:45},
-    {type:"dungeon", name:"Ancient Tomb",      x:500,y:185,w:55,h:50},
+    {type:"route",name:"Route 101",x:122,y:376,w:52,h:52},
+    {type:"route",name:"Route 102",x:59,y:325,w:68,h:38},
+    {type:"route",name:"Route 103",x:182,y:325,w:80,h:38},
+    {type:"route",name:"Route 104N",x:29,y:224,w:48,h:85},
+    {type:"route",name:"Route 105",x:29,y:406,w:48,h:90},
+    {type:"route",name:"Route 109",x:228,y:478,w:52,h:72},
+    {type:"route",name:"Route 110",x:228,y:338,w:52,h:85},
+    {type:"route",name:"Route 111",x:228,y:152,w:55,h:140},
+    {type:"route",name:"Route 112",x:135,y:198,w:105,h:36},
+    {type:"route",name:"Route 113",x:135,y:67,w:158,h:36},
+    {type:"route",name:"Route 114",x:135,y:110,w:55,h:45},
+    {type:"route",name:"Route 115",x:25,y:67,w:55,h:88},
+    {type:"route",name:"Route 116",x:88,y:148,w:100,h:36},
+    {type:"route",name:"Route 117",x:198,y:283,w:100,h:38},
+    {type:"route",name:"Route 118",x:292,y:283,w:115,h:38},
+    {type:"route",name:"Route 119",x:402,y:110,w:52,h:130},
+    {type:"route",name:"Route 120",x:402,y:67,w:52,h:45},
+    {type:"route",name:"Route 121",x:440,y:67,w:130,h:38},
+    {type:"route",name:"Route 122",x:516,y:110,w:52,h:80},
+    {type:"route",name:"Route 123",x:313,y:283,w:210,h:38},
+    {type:"route",name:"Route 124",x:605,y:67,w:52,h:130},
+    {type:"route",name:"Route 126",x:516,y:334,w:138,h:78},
+    {type:"route",name:"Route 127",x:647,y:237,w:88,h:105},
+    {type:"route",name:"Route 128",x:609,y:338,w:130,h:65},
+    {type:"route",name:"Route 129",x:503,y:406,w:110,h:48},
+    {type:"route",name:"Route 130",x:440,y:406,w:65,h:48},
+    {type:"route",name:"Route 131",x:334,y:406,w:110,h:48},
+    {type:"route",name:"Route 132",x:228,y:478,w:110,h:48},
+    {type:"route",name:"Route 125",x:647,y:67,w:55,h:45},
+    {type:"dungeon",name:"Petalburg Woods",x:29,y:237,w:59,h:47},
+    {type:"dungeon",name:"Rusturf Tunnel",x:88,y:186,w:47,h:34},
+    {type:"dungeon",name:"Granite Cave",x:29,y:520,w:59,h:47},
+    {type:"dungeon",name:"Meteor Falls",x:88,y:67,w:47,h:42},
+    {type:"dungeon",name:"Mt. Chimney",x:135,y:110,w:63,h:42},
+    {type:"dungeon",name:"Jagged Pass",x:198,y:152,w:30,h:42},
+    {type:"dungeon",name:"Fiery Path",x:198,y:194,w:30,h:47},
+    {type:"dungeon",name:"Mt. Pyre",x:516,y:186,w:59,h:47},
+    {type:"dungeon",name:"Seafloor Cavern",x:562,y:406,w:47,h:38},
+    {type:"dungeon",name:"Cave of Origin",x:516,y:283,w:47,h:42},
+    {type:"dungeon",name:"Sky Pillar",x:440,y:368,w:47,h:38},
+    {type:"dungeon",name:"Victory Road",x:727,y:152,w:47,h:42},
+    {type:"dungeon",name:"Safari Zone",x:605,y:25,w:63,h:42},
+    {type:"dungeon",name:"Shoal Cave",x:647,y:110,w:47,h:42},
+    {type:"dungeon",name:"New Mauville",x:292,y:283,w:47,h:42},
+    {type:"dungeon",name:"Desert Ruins",x:228,y:110,w:47,h:42},
+    {type:"dungeon",name:"Island Cave",x:25,y:444,w:47,h:38},
+    {type:"dungeon",name:"Ancient Tomb",x:402,y:25,w:47,h:42},
+    {type:"city",name:"Littleroot Town",x:122,y:444,w:59,h:42},
+    {type:"city",name:"Oldale Town",x:122,y:325,w:59,h:42},
+    {type:"city",name:"Petalburg City",x:29,y:325,w:59,h:47},
+    {type:"city",name:"Rustboro City",x:25,y:148,w:63,h:51},
+    {type:"city",name:"Dewford Town",x:76,y:520,w:55,h:38},
+    {type:"city",name:"Slateport City",x:228,y:410,w:63,h:51},
+    {type:"city",name:"Mauville City",x:228,y:283,w:63,h:47},
+    {type:"city",name:"Verdanturf Town",x:135,y:283,w:63,h:42},
+    {type:"city",name:"Fallarbor Town",x:135,y:25,w:63,h:42},
+    {type:"city",name:"Lavaridge Town",x:135,y:152,w:63,h:42},
+    {type:"city",name:"Fortree City",x:402,y:67,w:59,h:42},
+    {type:"city",name:"Lilycove City",x:562,y:67,w:68,h:47},
+    {type:"city",name:"Mossdeep City",x:647,y:194,w:59,h:42},
+    {type:"city",name:"Sootopolis City",x:516,y:283,w:68,h:51},
+    {type:"city",name:"Pacifidlog Town",x:440,y:406,w:63,h:42},
+    {type:"city",name:"Ever Grande City",x:727,y:105,w:68,h:47}
   ]
 };
 
@@ -2338,7 +2441,7 @@ const ENCOUNTERS = {
 // Map state
 let mapState = {
   scale: 1, tx: 0, ty: 0,
-  layers: { city: true, route: true, dungeon: true },
+  layers: { city: true, route: true, dungeon: true, gym: true, path: true },
   dragging: false, lastX: 0, lastY: 0,
   pinching: false, lastDist: 0,
   game: null
@@ -2358,8 +2461,24 @@ function initMap() {
 }
 
 function getMapData() {
-  // For now all games use Hoenn - extend later
-  return HOENN_MAP;
+  const id = currentGame ? currentGame.id : 'emerald';
+  return (id==='frlg'||id==='rb'||id==='yellow') ? KANTO_MAP : HOENN_MAP;
+}
+function getPathsData() {
+  const id = currentGame ? currentGame.id : 'emerald';
+  return (id==='frlg'||id==='rb'||id==='yellow') ? KANTO_PATHS : HOENN_PATHS;
+}
+function getCentersData() {
+  const id = currentGame ? currentGame.id : 'emerald';
+  return (id==='frlg'||id==='rb'||id==='yellow') ? KANTO_CENTERS : LOCATION_CENTERS;
+}
+function getEncountersData() {
+  const id = currentGame ? currentGame.id : 'emerald';
+  return (id==='frlg'||id==='rb'||id==='yellow') ? KANTO_ENCOUNTERS : ENCOUNTERS;
+}
+function getGymsData() {
+  const id = currentGame ? currentGame.id : 'emerald';
+  return (id==='frlg'||id==='rb'||id==='yellow') ? KANTO_GYMS : HOENN_GYMS;
 }
 
 function renderMapSVG() {
@@ -2368,63 +2487,197 @@ function renderMapSVG() {
   const svg = document.getElementById('map-svg');
   const wrap = document.getElementById('map-wrap');
 
-  // Set SVG size
-  const W = 1000, H = 900;
+  const W = 820, H = 760;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('width', W);
   svg.setAttribute('height', H);
 
-  // Scale to fit screen initially
   const wrapW = wrap.clientWidth || 360;
   mapState.scale = wrapW / W;
-  mapState.tx = 0;
-  mapState.ty = 0;
+  mapState.tx = 0; mapState.ty = 0;
   applyMapTransform();
 
-  // Colors per type
+  // Polished tile colors
   const colors = {
-    city:    { fill:'#1a3a1a', stroke: game.accent,  label: game.accent  },
-    route:   { fill:'#142814', stroke: game.border,   label:'#6a8a6a'    },
-    dungeon: { fill:'#1a1a2a', stroke: game.gold,     label: game.gold   },
+    city:    { fill:'#0d2a18', fillH:'#122e1c', stroke: game.accent, label: game.accent,  dot:'#00ff88' },
+    route:   { fill:'#0a1f0e', fillH:'#0f2412', stroke:'#2a5a34',    label:'#7aaa84',     dot:'#4a8a54' },
+    dungeon: { fill:'#151520', fillH:'#1a1a2a', stroke: game.gold,   label: game.gold,    dot:'#ffdd44' },
   };
 
-  let svgContent = `
-    <!-- Ocean background -->
-    <rect width="${W}" height="${H}" fill="#0a1e2e"/>
-    <!-- Land mass (simplified Hoenn shape) -->
-    <rect x="40" y="170" width="320" height="720" rx="8" fill="#0d2010" opacity="0.6"/>
-    <rect x="280" y="170" width="480" height="560" rx="8" fill="#0d2010" opacity="0.6"/>
-    <rect x="680" y="170" width="280" height="480" rx="8" fill="#0d2010" opacity="0.6"/>
-    <!-- Grid lines -->
-    ${Array.from({length:20},(_,i)=>`<line x1="${i*50}" y1="0" x2="${i*50}" y2="${H}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
-    ${Array.from({length:18},(_,i)=>`<line x1="0" y1="${i*50}" x2="${W}" y2="${i*50}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
+  const acc = game.accent || '#00a86b';
+  const isKanto = ['frlg','rb','yellow'].includes(currentGame ? currentGame.id : '');
+
+  // ── DEFS: gradients + filters + animations ──
+  let svgContent = `<defs>
+    <filter id="glow-city" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-dungeon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-soft">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="ocean-grad" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#040e1a"/>
+      <stop offset="100%" stop-color="#071828"/>
+    </linearGradient>
+    <linearGradient id="land-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c1e0e"/>
+      <stop offset="100%" stop-color="#071208"/>
+    </linearGradient>
+    <radialGradient id="city-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${acc}" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="${acc}" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="hex-grid" x="0" y="0" width="40" height="46" patternUnits="userSpaceOnUse">
+      <polygon points="20,2 38,12 38,34 20,44 2,34 2,12"
+        fill="none" stroke="rgba(255,255,255,0.018)" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Ocean -->
+  <rect width="${W}" height="${H}" fill="url(#ocean-grad)"/>
+  <!-- Hex grid overlay for sci-fi map feel -->
+  <rect width="${W}" height="${H}" fill="url(#hex-grid)" opacity="0.6"/>
+  <!-- Ocean shimmer lines -->
+  ${Array.from({length:8},(_,i)=>`
+    <line x1="0" y1="${120+i*90}" x2="${W}" y2="${120+i*90}"
+      stroke="rgba(100,180,255,0.04)" stroke-width="1.5"/>
+  `).join('')}
+
+  <!-- Land masses - shape changes per region -->
+  ${isKanto ? `
+  <rect x="20" y="20" width="590" height="720" rx="12" fill="url(#land-grad)" opacity="0.85"/>
+  <rect x="555" y="555" width="250" height="185" rx="12" fill="url(#land-grad)" opacity="0.85"/>
+  <rect x="20" y="20" width="590" height="720" rx="12" fill="none" stroke="${acc}" stroke-width="1" stroke-opacity="0.2"/>
+  <rect x="555" y="555" width="250" height="185" rx="12" fill="none" stroke="${acc}" stroke-width="1" stroke-opacity="0.2"/>
+  ` : `
+  <rect x="20"  y="20"  width="275" height="560" rx="12" fill="url(#land-grad)" opacity="0.85"/>
+  <rect x="185" y="20"  width="410" height="450" rx="12" fill="url(#land-grad)" opacity="0.85"/>
+  <rect x="530" y="20"  width="240" height="420" rx="12" fill="url(#land-grad)" opacity="0.85"/>
+  <rect x="20"  y="20"  width="275" height="560" rx="12" fill="none" stroke="${acc}" stroke-width="1" stroke-opacity="0.2"/>
+  <rect x="185" y="20"  width="410" height="450" rx="12" fill="none" stroke="${acc}" stroke-width="1" stroke-opacity="0.2"/>
+  <rect x="530" y="20"  width="240" height="420" rx="12" fill="none" stroke="${acc}" stroke-width="1" stroke-opacity="0.2"/>
+  `}
+
+  <!-- Compass rose bottom-right -->
+  <g transform="translate(790,728)" opacity="0.3">
+    <circle cx="0" cy="0" r="28" fill="none" stroke="${acc}" stroke-width="0.8"/>
+    <circle cx="0" cy="0" r="20" fill="none" stroke="${acc}" stroke-width="0.5"/>
+    <line x1="0" y1="-22" x2="0" y2="22" stroke="${acc}" stroke-width="1"/>
+    <line x1="-22" y1="0" x2="22" y2="0" stroke="${acc}" stroke-width="1"/>
+    <polygon points="0,-26 3,-18 0,-22 -3,-18" fill="${acc}"/>
+    <text x="0" y="-30" text-anchor="middle" fill="${acc}" font-family="monospace" font-size="7" font-weight="bold">N</text>
+    <text x="0" y="40"  text-anchor="middle" fill="${acc}" font-family="monospace" font-size="6">S</text>
+    <text x="30" y="4"  text-anchor="middle" fill="${acc}" font-family="monospace" font-size="6">E</text>
+    <text x="-30" y="4" text-anchor="middle" fill="${acc}" font-family="monospace" font-size="6">W</text>
+  </g>
+
+  <!-- Region label watermark -->
+  <text x="410" y="748" text-anchor="middle" fill="${acc}"
+    font-family="monospace" font-size="11" font-weight="bold"
+    letter-spacing="6" fill-opacity="0.07">${isKanto ? "KANTO REGION" : "HOENN REGION"}</text>
   `;
 
-  // Draw locations
-  map.locations.forEach((loc, idx) => {
+  // ── CITY AMBIENT GLOW HALOS ──
+  svgContent += '<g id="city-halos" opacity="0.6">';
+  map.locations.filter(l => l.type === 'city').forEach(loc => {
+    const cx = loc.x + loc.w/2, cy = loc.y + loc.h/2;
+    const r = Math.max(loc.w, loc.h) * 0.85;
+    svgContent += `<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r*0.7}"
+      fill="url(#city-glow)" filter="url(#glow-soft)"/>`;
+  });
+  svgContent += '</g>';
+
+  // ── LOCATION TILES ──
+  map.locations.forEach((loc) => {
     const c = colors[loc.type];
     const layer = `layer-${loc.type}`;
     const display = mapState.layers[loc.type] ? '' : 'display:none';
-    const rx = loc.type === 'city' ? 6 : loc.type === 'dungeon' ? 3 : 2;
-    const fontSize = loc.type === 'city' ? 10 : 8;
-    const nameShort = loc.name.replace('Route ','R.').replace(' Town','').replace(' City','').replace(' Cave','').replace(' Falls','');
+    const isCityOrDungeon = loc.type !== 'route';
 
-    const fw = loc.type === 'city' ? 'bold' : 'normal';
-    const sw = loc.type === 'city' ? 2 : 1;
+    // Shorten label
+    let label = loc.name
+      .replace('Route ','R.')
+      .replace(' Town','')
+      .replace(' City','')
+      .replace(' Cave','')
+      .replace(' Falls','')
+      .replace('Mt. ','Mt.')
+      .replace(' Tunnel','')
+      .replace(' Ruins','');
+
+    // Split long labels at space
+    const words = label.split(' ');
+    const line1 = words[0];
+    const line2 = words.slice(1).join(' ');
+
+    const rx = loc.type === 'city' ? 8 : loc.type === 'dungeon' ? 5 : 3;
+    const cx = loc.x + loc.w/2;
+    const cy = loc.y + loc.h/2;
+    const fs = loc.type === 'city' ? 9.5 : 8;
+    const sw = loc.type === 'city' ? 1.5 : 1;
+    const filter = loc.type === 'city' ? 'filter="url(#glow-city)"'
+                 : loc.type === 'dungeon' ? 'filter="url(#glow-dungeon)"' : '';
+
+    // Dot indicator top-left corner
+    const dotR = loc.type === 'city' ? 3.5 : 2.5;
+
     svgContent += `
-    <g class="map-loc" data-layer="${layer}" data-name="${loc.name}" data-type="${loc.type}" style="${display}">
+    <g class="map-loc" data-layer="${layer}" data-name="${loc.name}" data-type="${loc.type}" style="${display}" ${filter}>
+      <!-- Tile shadow -->
+      <rect x="${loc.x+2}" y="${loc.y+2}" width="${loc.w}" height="${loc.h}"
+            rx="${rx}" fill="rgba(0,0,0,0.4)"/>
+      <!-- Tile fill -->
       <rect x="${loc.x}" y="${loc.y}" width="${loc.w}" height="${loc.h}"
-            fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}"
-            rx="${rx}" opacity="0.9"/>
-      <text x="${loc.x + loc.w/2}" y="${loc.y + loc.h/2 + fontSize*0.35}"
-            text-anchor="middle" fill="${c.label}"
-            font-family="Courier New" font-size="${fontSize}"
-            font-weight="${fw}">${nameShort}</text>
+            rx="${rx}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}" stroke-opacity="0.8"/>
+      <!-- Top highlight strip -->
+      <rect x="${loc.x+2}" y="${loc.y+1}" width="${loc.w-4}" height="${loc.type==='city'?3:2}"
+            rx="${rx}" fill="${c.stroke}" fill-opacity="${loc.type==='city'?0.35:0.18}"/>
+      ${loc.type === 'route' ? `<!-- Pixel grass blades -->
+      <g fill="#1a5c24" fill-opacity="0.55">
+        ${Array.from({length: Math.floor(loc.w/12)}, (_,gi) => {
+          const gx = loc.x + 6 + gi*12;
+          const gy = loc.y + loc.h - 4;
+          const h = 3 + (gi%3);
+          return `<rect x="${gx}"   y="${gy-h}" width="2" height="${h}"/>
+                  <rect x="${gx+3}" y="${gy-h+1}" width="2" height="${h-1}"/>
+                  <rect x="${gx+6}" y="${gy-h}" width="2" height="${h}"/>`;
+        }).join('')}
+      </g>` : ''}
+      ${loc.type === 'city' ? `<!-- Pokéball corner marker -->
+      <g transform="translate(${loc.x+loc.w-16},${loc.y+1}) scale(0.95)">
+        <use href="#pokeball"/>
+      </g>` : loc.type === 'dungeon' ? `<!-- Dungeon warning dot -->
+      <circle cx="${loc.x+loc.w-7}" cy="${loc.y+7}" r="${dotR}" fill="${c.dot}" fill-opacity="0.9"/>
+      <circle cx="${loc.x+loc.w-7}" cy="${loc.y+7}" r="${dotR+2}" fill="none" stroke="${c.dot}" stroke-width="0.8" stroke-opacity="0.4"/>` : ''}
+      <!-- Label -->
+      ${line2 ? `
+      <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="${c.label}"
+            font-family="monospace" font-size="${fs}" font-weight="${loc.type==='city'?'bold':'normal'}"
+            fill-opacity="0.95">${line1}</text>
+      <text x="${cx}" y="${cy+fs}" text-anchor="middle" fill="${c.label}"
+            font-family="monospace" font-size="${fs-1}" fill-opacity="0.8">${line2}</text>
+      ` : `
+      <text x="${cx}" y="${cy+fs*0.38}" text-anchor="middle" fill="${c.label}"
+            font-family="monospace" font-size="${fs}" font-weight="${loc.type==='city'?'bold':'normal'}"
+            fill-opacity="0.95">${label}</text>
+      `}
+      <!-- Tap target -->
       <rect x="${loc.x}" y="${loc.y}" width="${loc.w}" height="${loc.h}"
-            fill="transparent" rx="${rx}" style="cursor:pointer"
-            onclick="mapLocTap(this)"/>
+            fill="transparent" rx="${rx}" style="cursor:pointer" onclick="mapLocTap(this)"/>
     </g>`;
   });
+
+  // ── PATH LINES + BADGES both float on top of tiles ──
+  svgContent += buildPathLines();
+  svgContent += buildPathBadges();
+  // ── GYM ICONS topmost ──
+  svgContent += buildGymsSVG();
 
   svg.innerHTML = svgContent;
 }
@@ -2445,9 +2698,9 @@ function mapLocTap(el) {
                      : type === 'dungeon' ? currentGame?.gold || '#f0c040'
                      : '#6a8a6a';
 
-  const encs = ENCOUNTERS[name];
+  const encs = getEncountersData()[name];
   if (encs && encs.length) {
-    encEl.innerHTML = '<div style="font-family:'Courier New',monospace;font-size:9px;color:#4a6a54;letter-spacing:2px;margin-bottom:8px">WILD POKÉMON</div>' +
+    encEl.innerHTML = '<div style="font-family:monospace;font-size:9px;color:#4a6a54;letter-spacing:2px;margin-bottom:8px">WILD POKÉMON</div>' +
       encs.map(e => {
         const dotColor = TC[e.type] || '#555';
         return `<div class="encounter-row">
@@ -2472,10 +2725,12 @@ function toggleLayer(type) {
   const btn = document.getElementById('tog-' + type);
   btn.className = 'map-toggle ' + (mapState.layers[type] ? 'on' : 'off');
   updateMapToggleColors();
-  // Show/hide elements
   document.querySelectorAll(`[data-layer="layer-${type}"]`).forEach(el => {
     el.style.display = mapState.layers[type] ? '' : 'none';
   });
+  // Hide legend when paths are off
+  const legend = document.getElementById('map-legend');
+  if (legend) legend.style.display = mapState.layers.path ? '' : 'none';
 }
 
 function updateMapToggleColors() {
@@ -2484,6 +2739,8 @@ function updateMapToggleColors() {
     'tog-city':    { color: game.accent, border: game.accent },
     'tog-route':   { color: '#6a8a6a',  border: '#1a4028' },
     'tog-dungeon': { color: game.gold,  border: game.gold },
+    'tog-gym':     { color: '#ffaa00',  border: '#ffaa00' },
+    'tog-path':    { color: '#4a9eff',  border: '#4a9eff' },
   };
   Object.entries(toggles).forEach(([id, style]) => {
     const el = document.getElementById(id);
@@ -2514,89 +2771,1079 @@ function setupMapGestures() {
   if (!wrap || wrap._mapListenersAdded) return;
   wrap._mapListenersAdded = true;
 
-  let startX, startY, startTx, startTy;
-  let pinchStartDist, pinchStartScale;
+  const W = 820, H = 760;
 
   function dist(t) {
     const dx = t[0].clientX - t[1].clientX;
     const dy = t[0].clientY - t[1].clientY;
     return Math.sqrt(dx*dx + dy*dy);
   }
-  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
   function clampTranslate() {
-    const W = 1000, H = 900;
     const sw = wrap.clientWidth, sh = wrap.clientHeight;
-    const maxTx = 0, minTx = sw - W * mapState.scale;
-    const maxTy = 0, minTy = sh - H * mapState.scale;
-    mapState.tx = clamp(mapState.tx, Math.min(minTx,0), Math.max(maxTx,0));
-    mapState.ty = clamp(mapState.ty, Math.min(minTy,0), Math.max(maxTy,0));
+    mapState.tx = clamp(mapState.tx, Math.min(sw - W * mapState.scale, 0), 0);
+    mapState.ty = clamp(mapState.ty, Math.min(sh - H * mapState.scale, 0), 0);
+  }
+
+  // CSS: hand all touch events to JS, prevents browser interference
+  wrap.style.touchAction = 'none';
+  // Block iOS Safari native gesture zoom on the whole document while map is open
+  const gestureHandler = e => e.preventDefault();
+  document.addEventListener('gesturestart',  gestureHandler, { passive: false });
+  document.addEventListener('gesturechange', gestureHandler, { passive: false });
+
+  let lastTouches = [];
+  let justPinched = false;   // suppress spurious pan after pinch lifts
+  let lastTap = 0;
+  let animFrame = null;
+
+  function scheduleRender() {
+    if (animFrame) return;
+    animFrame = requestAnimationFrame(() => {
+      animFrame = null;
+      applyMapTransform();
+    });
   }
 
   wrap.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      pinchStartDist = dist(e.touches);
-      pinchStartScale = mapState.scale;
+    e.preventDefault();
+    const touches = Array.from(e.touches);
+    if (touches.length === 2) {
       mapState.pinching = true;
-    } else if (e.touches.length === 1) {
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-      startTx = mapState.tx; startTy = mapState.ty;
-      mapState.dragging = true; mapState.pinching = false;
+      mapState.dragging = false;
+      justPinched = false;
+    } else if (touches.length === 1 && !justPinched) {
+      mapState.dragging = true;
+      mapState.pinching = false;
     }
-  }, { passive: true });
+    lastTouches = touches;
+  }, { passive: false });
 
   wrap.addEventListener('touchmove', e => {
     e.preventDefault();
-    if (mapState.pinching && e.touches.length === 2) {
-      const newDist = dist(e.touches);
-      const newScale = clamp(pinchStartScale * (newDist / pinchStartDist), 0.5, 4);
-      // Zoom toward center of pinch
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - wrap.getBoundingClientRect().left;
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - wrap.getBoundingClientRect().top;
-      const ratio = newScale / mapState.scale;
-      mapState.tx = cx - ratio * (cx - mapState.tx);
-      mapState.ty = cy - ratio * (cy - mapState.ty);
+    const touches = Array.from(e.touches);
+    if (!lastTouches.length) { lastTouches = touches; return; }
+
+    if (touches.length === 2 && lastTouches.length === 2) {
+      // ── PINCH + PAN simultaneously ──
+      const prevD = dist(lastTouches), newD = dist(touches);
+      if (prevD === 0) { lastTouches = touches; return; }
+      const scaleDelta = newD / prevD;
+      const newScale = clamp(mapState.scale * scaleDelta, 0.35, 6);
+
+      const rect = wrap.getBoundingClientRect();
+      // Focal point = midpoint of fingers relative to wrap
+      const fx = ((touches[0].clientX + touches[1].clientX) / 2) - rect.left;
+      const fy = ((touches[0].clientY + touches[1].clientY) / 2) - rect.top;
+      // Pan delta from midpoint movement
+      const dx = (touches[0].clientX + touches[1].clientX) / 2
+               - (lastTouches[0].clientX + lastTouches[1].clientX) / 2;
+      const dy = (touches[0].clientY + touches[1].clientY) / 2
+               - (lastTouches[0].clientY + lastTouches[1].clientY) / 2;
+
+      // Zoom toward focal point then apply pan
+      mapState.tx = fx + (mapState.tx - fx) * (newScale / mapState.scale) + dx;
+      mapState.ty = fy + (mapState.ty - fy) * (newScale / mapState.scale) + dy;
       mapState.scale = newScale;
-      clampTranslate();
-      applyMapTransform();
-    } else if (mapState.dragging && e.touches.length === 1) {
-      mapState.tx = startTx + (e.touches[0].clientX - startX);
-      mapState.ty = startTy + (e.touches[0].clientY - startY);
-      clampTranslate();
-      applyMapTransform();
+
+    } else if (touches.length === 1 && !justPinched) {
+      // ── SINGLE FINGER PAN ──
+      // Only use the matching finger identifier to avoid jumps
+      const prev = lastTouches.find(t => t.identifier === touches[0].identifier)
+                || lastTouches[0];
+      mapState.tx += touches[0].clientX - prev.clientX;
+      mapState.ty += touches[0].clientY - prev.clientY;
     }
+
+    clampTranslate();
+    scheduleRender();
+    lastTouches = touches;
   }, { passive: false });
 
   wrap.addEventListener('touchend', e => {
-    if (e.touches.length < 2) mapState.pinching = false;
-    if (e.touches.length === 0) mapState.dragging = false;
-  }, { passive: true });
-
-  // Double tap to zoom
-  let lastTap = 0;
-  wrap.addEventListener('touchend', e => {
-    if (e.changedTouches.length !== 1) return;
-    const now = Date.now();
-    if (now - lastTap < 300) {
-      const t = e.changedTouches[0];
-      const rect = wrap.getBoundingClientRect();
-      const cx = t.clientX - rect.left;
-      const cy = t.clientY - rect.top;
-      if (mapState.scale < 1.8) {
-        const newScale = 2.5;
-        mapState.tx = cx - (newScale/mapState.scale) * (cx - mapState.tx);
-        mapState.ty = cy - (newScale/mapState.scale) * (cy - mapState.ty);
-        mapState.scale = newScale;
-      } else {
-        const wrapW = wrap.clientWidth;
-        mapState.scale = wrapW / 1000;
-        mapState.tx = 0; mapState.ty = 0;
-      }
-      clampTranslate();
-      applyMapTransform();
+    e.preventDefault();
+    const remaining = Array.from(e.touches);
+    // When lifting from a pinch, suppress the next pan gesture briefly
+    if (mapState.pinching && remaining.length < 2) {
+      mapState.pinching = false;
+      justPinched = true;
+      setTimeout(() => { justPinched = false; }, 120);
     }
-    lastTap = now;
-  }, { passive: true });
+    if (remaining.length === 0) {
+      mapState.dragging = false;
+      // Double-tap to zoom
+      const now = Date.now();
+      if (e.changedTouches.length === 1 && now - lastTap < 280 && !mapState.pinching) {
+        const t = e.changedTouches[0];
+        const rect = wrap.getBoundingClientRect();
+        const cx = t.clientX - rect.left;
+        const cy = t.clientY - rect.top;
+        const targetScale = mapState.scale < 1.8 ? 2.8 : wrap.clientWidth / W;
+        const ratio = targetScale / mapState.scale;
+        mapState.tx = cx - ratio * (cx - mapState.tx);
+        mapState.ty = cy - ratio * (cy - mapState.ty);
+        mapState.scale = targetScale;
+        clampTranslate();
+        // Animate the zoom
+        wrap.querySelector('#map-svg').style.transition = 'transform 0.2s ease';
+        applyMapTransform();
+        setTimeout(() => {
+          const svg = wrap.querySelector('#map-svg');
+          if (svg) svg.style.transition = '';
+        }, 220);
+      }
+      lastTap = Date.now();
+    }
+    lastTouches = remaining;
+  }, { passive: false });
+
+  // Clean up gesture handlers when tab changes
+  wrap._cleanupGestures = () => {
+    document.removeEventListener('gesturestart',  gestureHandler);
+    document.removeEventListener('gesturechange', gestureHandler);
+  };
 }
+
+const LOCATION_CENTERS = {
+  "Route 101":[148,402],
+  "Route 102":[93,344],
+  "Route 103":[222,344],
+  "Route 104N":[53,266],
+  "Route 105":[53,451],
+  "Route 109":[254,514],
+  "Route 110":[254,380],
+  "Route 111":[255,222],
+  "Route 112":[187,216],
+  "Route 113":[214,85],
+  "Route 114":[162,132],
+  "Route 115":[52,111],
+  "Route 116":[138,166],
+  "Route 117":[248,302],
+  "Route 118":[349,302],
+  "Route 119":[428,175],
+  "Route 120":[428,89],
+  "Route 121":[505,86],
+  "Route 122":[542,150],
+  "Route 123":[418,302],
+  "Route 124":[631,132],
+  "Route 126":[585,373],
+  "Route 127":[691,289],
+  "Route 128":[674,370],
+  "Route 129":[558,430],
+  "Route 130":[472,430],
+  "Route 131":[389,430],
+  "Route 132":[283,502],
+  "Route 125":[674,89],
+  "Petalburg Woods":[58,260],
+  "Rusturf Tunnel":[111,203],
+  "Granite Cave":[58,543],
+  "Meteor Falls":[111,88],
+  "Mt. Chimney":[166,131],
+  "Jagged Pass":[213,173],
+  "Fiery Path":[213,217],
+  "Mt. Pyre":[545,209],
+  "Seafloor Cavern":[585,425],
+  "Cave of Origin":[539,304],
+  "Sky Pillar":[463,387],
+  "Victory Road":[750,173],
+  "Safari Zone":[636,46],
+  "Shoal Cave":[670,131],
+  "New Mauville":[315,304],
+  "Desert Ruins":[251,131],
+  "Island Cave":[48,463],
+  "Ancient Tomb":[425,46],
+  "Littleroot Town":[151,465],
+  "Oldale Town":[151,346],
+  "Petalburg City":[58,348],
+  "Rustboro City":[56,173],
+  "Dewford Town":[103,539],
+  "Slateport City":[259,435],
+  "Mauville City":[259,306],
+  "Verdanturf Town":[166,304],
+  "Fallarbor Town":[166,46],
+  "Lavaridge Town":[166,173],
+  "Fortree City":[431,88],
+  "Lilycove City":[596,90],
+  "Mossdeep City":[676,215],
+  "Sootopolis City":[550,308],
+  "Pacifidlog Town":[471,427],
+  "Ever Grande City":[761,128]
+};
+
+const HOENN_PATHS = [
+  ["Littleroot Town","Route 101",null,null],
+  ["Route 101","Oldale Town",null,null],
+  ["Oldale Town","Route 102",null,null],
+  ["Route 102","Petalburg City",null,null],
+  ["Oldale Town","Route 103",null,null],
+  ["Petalburg City","Route 104N",null,null],
+  ["Route 104N","Petalburg Woods",null,null],
+  ["Petalburg Woods","Route 104N",null,null],
+  ["Route 104N","Rustboro City",null,null],
+  ["Rustboro City","Route 116",null,null],
+  ["Rustboro City","Route 115",null,null],
+  ["Route 116","Rusturf Tunnel",null,null],
+  ["Rustboro City","Dewford Town","hm","Surf"],
+  ["Dewford Town","Granite Cave",null,null],
+  ["Dewford Town","Slateport City","hm","Surf"],
+  ["Slateport City","Route 110",null,null],
+  ["Route 110","Mauville City",null,null],
+  ["Mauville City","Route 117",null,null],
+  ["Route 117","Verdanturf Town",null,null],
+  ["Rusturf Tunnel","Verdanturf Town","hm","Rock Smash"],
+  ["Mauville City","Route 118",null,null],
+  ["Mauville City","Route 111",null,null],
+  ["Route 111","Route 112",null,null],
+  ["Route 112","Lavaridge Town",null,null],
+  ["Route 112","Fiery Path",null,null],
+  ["Route 111","Route 113",null,null],
+  ["Route 113","Fallarbor Town",null,null],
+  ["Fallarbor Town","Route 114",null,null],
+  ["Route 114","Meteor Falls",null,null],
+  ["Route 115","Meteor Falls",null,null],
+  ["Route 111","Desert Ruins","item","Go-Goggles"],
+  ["Route 118","Route 119","hm","Surf"],
+  ["Route 119","Fortree City",null,null],
+  ["Fortree City","Route 120","item","Devon Scope"],
+  ["Route 120","Route 121",null,null],
+  ["Route 121","Lilycove City",null,null],
+  ["Route 121","Mt. Pyre","hm","Surf"],
+  ["Lilycove City","Route 124","hm","Surf"],
+  ["Route 124","Mossdeep City","hm","Surf"],
+  ["Route 124","Safari Zone",null,null],
+  ["Mossdeep City","Shoal Cave",null,null],
+  ["Mossdeep City","Route 127","hm","Surf"],
+  ["Route 127","Route 128","hm","Surf"],
+  ["Route 128","Sootopolis City","hm","Dive"],
+  ["Sootopolis City","Cave of Origin","story","Unlock Sootopolis"],
+  ["Route 128","Ever Grande City","hm","Waterfall"],
+  ["Ever Grande City","Victory Road","badge","All 8 Badges"],
+  ["Sootopolis City","Route 126","hm","Surf"],
+  ["Route 126","Sky Pillar","hm","Surf"],
+  ["Route 123","Route 122","hm","Surf"],
+  ["Route 131","Pacifidlog Town","hm","Surf"],
+  ["Route 130","Pacifidlog Town","hm","Surf"],
+  ["Route 129","Route 128","hm","Surf"],
+  ["Route 123","Lilycove City",null,null],
+  ["Mauville City","New Mauville","item","Dynamo Badge"],
+  ["Lavaridge Town","Jagged Pass",null,null],
+  ["Jagged Pass","Mt. Chimney",null,null],
+  ["Route 111","Fallarbor Town","hm","Acro Bike"],
+  ["Fortree City","Route 119",null,null],
+  ["Route 121","Route 122","hm","Surf"],
+  ["Route 125","Shoal Cave","hm","Surf"],
+  ["Lilycove City","Route 125","hm","Surf"],
+  ["Route 128","Seafloor Cavern","hm","Dive"],
+  ["Seafloor Cavern","Cave of Origin","story","Team Magma/Aqua"],
+  ["Island Cave","Route 105","hm","Surf"],
+  ["Ancient Tomb","Route 120","story","Regi Puzzle"],
+  ["Desert Ruins","Route 111","story","Regi Puzzle"]
+];
+
+const PATH_STYLES = {
+  "open":  {stroke:"#2d5a3d", dash:"none",  badge:null},
+  "hm":    {stroke:"#4a9eff", dash:"8,5",   badge:"HM"},
+  "badge": {stroke:"#ffd700", dash:"8,5",   badge:"BADGE"},
+  "item":  {stroke:"#ff9900", dash:"6,4",   badge:"ITEM"},
+  "story": {stroke:"#cc44ff", dash:"5,4",   badge:"STORY"},
+};
+
+
+function buildPathLines() {
+  const display = mapState.layers.path ? '' : 'display:none';
+  let out = `<g id="path-lines" data-layer="layer-path" style="${display}">`;
+  getPathsData().forEach(([frm, to, reqType]) => {
+    const a = getCentersData()[frm];
+    const b = getCentersData()[to];
+    if (!a || !b) return;
+    const st = PATH_STYLES[reqType || 'open'];
+    const sw = reqType ? 2.5 : 1.8;
+    const op = reqType ? 0.85 : 0.55;
+    const dash = st.dash !== 'none' ? `stroke-dasharray="${st.dash}"` : '';
+    out += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"
+      stroke="${st.stroke}" stroke-width="${sw}" stroke-opacity="${op}"
+      stroke-linecap="round" ${dash}/>`;
+  });
+  out += '</g>';
+  return out;
+}
+
+function buildPathBadges() {
+  const display = mapState.layers.path ? '' : 'display:none';
+  let out = `<g id="path-badges" data-layer="layer-path" style="${display}">`;
+  getPathsData().forEach(([frm, to, reqType, reqLabel]) => {
+    if (!reqType || !reqLabel) return;
+    const a = getCentersData()[frm];
+    const b = getCentersData()[to];
+    if (!a || !b) return;
+    const st = PATH_STYLES[reqType];
+    const mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2;
+    const bw = reqLabel.length * 6 + 20;
+    const bh = 17;
+    const safe_frm = frm.replace(/'/g,'&#39;');
+    const safe_to  = to.replace(/'/g,'&#39;');
+    const safe_lbl = reqLabel.replace(/'/g,'&#39;');
+    out += `
+      <rect x="${mx-bw/2}" y="${my-bh/2}" width="${bw}" height="${bh}" rx="9"
+        fill="#040c04" stroke="${st.stroke}" stroke-width="1.5" fill-opacity="0.97"/>
+      <text x="${mx}" y="${my+5}" text-anchor="middle"
+        fill="${st.stroke}" font-family="monospace" font-size="8" font-weight="bold"
+        letter-spacing="0.8">${reqLabel.toUpperCase()}</text>
+      <rect x="${mx-bw/2-10}" y="${my-bh/2-10}" width="${bw+20}" height="${bh+20}" rx="9"
+        fill="transparent" style="cursor:pointer"
+        onclick="showPathInfo('${safe_frm}','${safe_to}','${reqType}','${safe_lbl}')"/>`;
+  });
+  out += '</g>';
+  return out;
+}
+
+function buildPathsSVG() {
+  return buildPathLines() + buildPathBadges();
+}
+
+function renderPaths(svgEl) {
+  const show = mapState.layers.path ? '' : 'none';
+  document.querySelectorAll('[data-layer="layer-path"]').forEach(el => {
+    el.style.display = show;
+  });
+}
+
+function showPathInfo(frm, to, reqType, reqLabel) {
+  frm = frm.replace(/&#39;/g,"'");
+  to  = to.replace(/&#39;/g,"'");
+  const style = PATH_STYLES[reqType || "open"];
+  const panel = document.getElementById("map-info");
+  const nameEl = document.getElementById("map-info-name");
+  const typeEl = document.getElementById("map-info-type");
+  const encEl  = document.getElementById("map-info-encounters");
+
+  nameEl.textContent = frm + " → " + to;
+  typeEl.style.color = style.stroke;
+
+  const typeNames = {hm:"HM REQUIRED", badge:"BADGE REQUIRED", item:"KEY ITEM REQUIRED", story:"STORY GATE"};
+  typeEl.textContent = typeNames[reqType] || "OPEN PATH";
+
+  const icons = {hm:"💧", badge:"🏅", item:"🎒", story:"🔒"};
+  const descs = {
+    hm:    "You need a Pokémon with this HM move and the required badge to use it outside battle.",
+    badge: "You need to have earned this badge to proceed.",
+    item:  "You need this key item in your bag.",
+    story: "This path opens as you progress through the story.",
+  };
+  encEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <div style="font-size:28px;line-height:1">${icons[reqType]||"➡"}</div>
+      <div>
+        <div style="font-size:18px;color:${style.stroke};font-family:monospace;letter-spacing:1px">${reqLabel}</div>
+        <div style="font-size:12px;color:#6a8a6a;margin-top:4px;line-height:1.4">${descs[reqType]||""}</div>
+      </div>
+    </div>`;
+  panel.classList.add("open");
+}
+
+const HOENN_GYMS = [
+  {name:"Rustboro Gym",  city:"Rustboro City",  badge:"Stone Badge",   leader:"Roxanne",    type:"rock",     x:28, y:185},
+  {name:"Dewford Gym",   city:"Dewford Town",   badge:"Knuckle Badge", leader:"Brawly",     type:"fighting", x:79, y:544},
+  {name:"Mauville Gym",  city:"Mauville City",  badge:"Dynamo Badge",  leader:"Wattson",    type:"electric", x:231,y:316},
+  {name:"Lavaridge Gym", city:"Lavaridge Town", badge:"Heat Badge",    leader:"Flannery",   type:"fire",     x:138,y:180},
+  {name:"Petalburg Gym", city:"Petalburg City", badge:"Balance Badge", leader:"Norman",     type:"normal",   x:32, y:358},
+  {name:"Fortree Gym",   city:"Fortree City",   badge:"Feather Badge", leader:"Winona",     type:"flying",   x:405,y:95},
+  {name:"Mossdeep Gym",  city:"Mossdeep City",  badge:"Mind Badge",    leader:"Tate & Liza",type:"psychic",  x:650,y:222},
+  {name:"Sootopolis Gym",city:"Sootopolis City",badge:"Rain Badge",    leader:"Wallace",    type:"water",    x:519,y:320},
+];
+
+function buildGymsSVG() {
+  const display = mapState.layers.gym ? '' : 'display:none';
+  const TYPE_C = {
+    rock:'#AAAA44',fighting:'#BB2200',electric:'#DDAA00',
+    fire:'#FF4422',normal:'#9099A1',flying:'#7788DD',
+    psychic:'#FF5599',water:'#3399FF'
+  };
+  let out = `<g id="gym-layer" data-layer="layer-gym" style="${display}">`;
+
+  getGymsData().forEach(gym => {
+    const c = TYPE_C[gym.type] || '#888';
+    const x = gym.x, y = gym.y;
+    const safe_name   = gym.name.replace(/'/g,"&#39;");
+    const safe_leader = gym.leader.replace(/'/g,"&#39;");
+    const safe_badge  = gym.badge.replace(/'/g,"&#39;");
+
+    // Gym icon: pixel-art gym door symbol (12x14)
+    // Classic shape: rectangular building with peaked roof and door
+    out += `
+    <g style="cursor:pointer" onclick="showGymInfo('${safe_name}','${safe_leader}','${safe_badge}','${gym.type}')">
+      <!-- Outer glow -->
+      <rect x="${x-1}" y="${y-1}" width="14" height="16" rx="3"
+        fill="${c}" fill-opacity="0.18" stroke="${c}" stroke-width="0.5" stroke-opacity="0.4"/>
+      <!-- Roof peak (triangle) -->
+      <polygon points="${x+6},${y} ${x+1},${y+5} ${x+11},${y+5}"
+        fill="${c}" fill-opacity="0.9"/>
+      <!-- Building body -->
+      <rect x="${x+1}" y="${y+5}" width="10" height="8" rx="1"
+        fill="#0a0f0a" stroke="${c}" stroke-width="1" stroke-opacity="0.8"/>
+      <!-- Door -->
+      <rect x="${x+4}" y="${y+9}" width="4" height="4" rx="0.5"
+        fill="${c}" fill-opacity="0.7"/>
+      <!-- Door top arc hint -->
+      <rect x="${x+4}" y="${y+8}" width="4" height="2" rx="1"
+        fill="${c}" fill-opacity="0.5"/>
+      <!-- Window left -->
+      <rect x="${x+2}" y="${y+6}" width="2" height="2" rx="0.3"
+        fill="${c}" fill-opacity="0.6"/>
+      <!-- Window right -->
+      <rect x="${x+8}" y="${y+6}" width="2" height="2" rx="0.3"
+        fill="${c}" fill-opacity="0.6"/>
+    </g>`;
+  });
+
+  out += '</g>';
+  return out;
+}
+
+function showGymInfo(name, leader, badge, type) {
+  const TYPE_C = {
+    rock:'#AAAA44',fighting:'#BB2200',electric:'#DDAA00',
+    fire:'#FF4422',normal:'#9099A1',flying:'#7788DD',
+    psychic:'#FF5599',water:'#3399FF'
+  };
+  const TYPE_NAMES = {
+    rock:'Rock',fighting:'Fighting',electric:'Electric',
+    fire:'Fire',normal:'Normal',flying:'Flying',
+    psychic:'Psychic',water:'Water'
+  };
+  const c = TYPE_C[type] || '#888';
+  const panel  = document.getElementById('map-info');
+  const nameEl = document.getElementById('map-info-name');
+  const typeEl = document.getElementById('map-info-type');
+  const encEl  = document.getElementById('map-info-encounters');
+
+  nameEl.textContent = name.replace(/&#39;/g,"'");
+  typeEl.textContent = 'GYM LEADER: ' + leader.replace(/&#39;/g,"'");
+  typeEl.style.color = c;
+
+  encEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <svg width="26" height="13"><use href="#type-${type}"/></svg>
+      <div>
+        <div style="font-size:15px;color:${c};font-family:monospace;letter-spacing:1px">${badge.replace(/&#39;/g,"'")}</div>
+        <div style="font-size:11px;color:#6a8a6a;margin-top:3px">${TYPE_NAMES[type]} type specialist</div>
+      </div>
+    </div>`;
+  panel.classList.add('open');
+}
+
+// ─── POKÉMON AUTOCOMPLETE ─────────────────────────────────────
+let allPokemonCache = null;
+let pokeSearchTimer = null;
+
+async function loadPokemonCache() {
+  if (allPokemonCache) return allPokemonCache;
+  try {
+    const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=500');
+    if (!res.ok) return null;
+    const data = await res.json();
+    allPokemonCache = data.results; // [{name, url}]
+    return allPokemonCache;
+  } catch(e) { return null; }
+}
+
+function onPokeInput(inputEl, suggId, selectFn) {
+  const val = inputEl.value.trim();
+  const sugg = document.getElementById(suggId);
+  if (!sugg) return;
+  if (val.length < 2) { sugg.style.display = 'none'; return; }
+  clearTimeout(pokeSearchTimer);
+  pokeSearchTimer = setTimeout(() => fetchPokeSuggestions(val, sugg, inputEl, selectFn), 200);
+}
+
+async function fetchPokeSuggestions(query, suggEl, inputEl, selectFn) {
+  const q = query.toLowerCase();
+  const list = await loadPokemonCache();
+  if (!list) return;
+  const matches = list
+    .filter(p => p.name.startsWith(q) || p.name.includes(q))
+    .sort((a,b) => (a.name.startsWith(q) ? -1 : 1) - (b.name.startsWith(q) ? -1 : 1))
+    .slice(0, 7);
+  if (!matches.length) { suggEl.style.display = 'none'; return; }
+  // Get dex numbers from URLs
+  suggEl.innerHTML = matches.map(p => {
+    const id = p.url.split('/').filter(Boolean).pop();
+    const displayName = p.name.split('-').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+    return `<div class="poke-suggestion-item"
+      onmousedown="event.preventDefault()"
+      onclick="selectPokeSuggestion(this.dataset.name,${JSON.stringify(suggEl.id)},${JSON.stringify(null)},event)"
+      data-name="${displayName}">
+      <img class="poke-sug-sprite" src="${spriteUrl}" alt="" loading="lazy"/>
+      <span class="poke-sug-name">${displayName}</span>
+      <span class="poke-sug-num">#${String(id).padStart(3,'0')}</span>
+    </div>`;
+  }).join('');
+  // Store selectFn on the element for later retrieval
+  suggEl._selectFn = selectFn;
+  suggEl._inputEl = inputEl;
+  suggEl.style.display = 'block';
+}
+
+function selectPokeSuggestion(name, suggId, _unused, event) {
+  const sugg = document.getElementById(suggId);
+  if (!sugg) return;
+  sugg.style.display = 'none';
+  if (sugg._inputEl) sugg._inputEl.value = name;
+  if (sugg._selectFn) sugg._selectFn(name);
+}
+
+function hidePokesugg(suggId) {
+  setTimeout(() => {
+    const sugg = document.getElementById(suggId);
+    if (sugg) sugg.style.display = 'none';
+  }, 150);
+}
+
+
+// ─── KANTO DATA ──────────────────────────────────────────────
+const KANTO_MAP = {
+  viewBox: "0 0 820 760",
+  locations: [
+    {type:"route",name:"Route 1",x:90,y:560,w:62,h:55},
+    {type:"route",name:"Route 2",x:90,y:340,w:62,h:125},
+    {type:"route",name:"Route 3",x:165,y:280,w:115,h:38},
+    {type:"route",name:"Route 4",x:165,y:165,w:115,h:38},
+    {type:"route",name:"Route 5",x:285,y:230,w:72,h:42},
+    {type:"route",name:"Route 6",x:285,y:420,w:72,h:45},
+    {type:"route",name:"Route 7",x:295,y:375,w:60,h:38},
+    {type:"route",name:"Route 8",x:390,y:375,w:75,h:38},
+    {type:"route",name:"Route 9",x:360,y:220,w:105,h:38},
+    {type:"route",name:"Route 10",x:460,y:220,w:52,h:55},
+    {type:"route",name:"Route 11",x:360,y:470,w:105,h:38},
+    {type:"route",name:"Route 12",x:460,y:355,w:52,h:115},
+    {type:"route",name:"Route 13",x:360,y:560,w:100,h:38},
+    {type:"route",name:"Route 14",x:360,y:500,w:52,h:55},
+    {type:"route",name:"Route 15",x:170,y:590,w:110,h:38},
+    {type:"route",name:"Route 16",x:170,y:375,w:85,h:38},
+    {type:"route",name:"Route 17",x:170,y:470,w:52,h:115},
+    {type:"route",name:"Route 18",x:170,y:590,w:52,h:38},
+    {type:"route",name:"Route 19",x:285,y:645,w:72,h:60},
+    {type:"route",name:"Route 20",x:90,y:660,w:195,h:45},
+    {type:"route",name:"Route 21",x:90,y:650,w:62,h:55},
+    {type:"route",name:"Route 22",x:25,y:470,w:60,h:38},
+    {type:"route",name:"Route 23",x:90,y:175,w:62,h:100},
+    {type:"route",name:"Route 24",x:285,y:110,w:72,h:50},
+    {type:"route",name:"Route 25",x:360,y:80,w:120,h:42},
+    {type:"dungeon",name:"Viridian Forest",x:90,y:365,w:62,h:72},
+    {type:"dungeon",name:"Mt. Moon",x:165,y:230,w:55,h:45},
+    {type:"dungeon",name:"Rock Tunnel",x:460,y:230,w:52,h:50},
+    {type:"dungeon",name:"Pokemon Tower",x:470,y:235,w:45,h:42},
+    {type:"dungeon",name:"Silph Co.",x:365,y:378,w:50,h:42},
+    {type:"dungeon",name:"Safari Zone",x:180,y:500,w:55,h:45},
+    {type:"dungeon",name:"Seafoam Islands",x:170,y:710,w:60,h:42},
+    {type:"dungeon",name:"Pokemon Mansion",x:90,y:668,w:55,h:38},
+    {type:"dungeon",name:"Power Plant",x:510,y:220,w:55,h:38},
+    {type:"dungeon",name:"Victory Road",x:30,y:240,w:52,h:40},
+    {type:"dungeon",name:"Cerulean Cave",x:250,y:120,w:55,h:40},
+    {type:"dungeon",name:"Diglett Cave",x:170,y:430,w:52,h:38},
+    {type:"city",name:"Pallet Town",x:90,y:620,w:62,h:42},
+    {type:"city",name:"Viridian City",x:90,y:470,w:68,h:48},
+    {type:"city",name:"Pewter City",x:90,y:280,w:68,h:48},
+    {type:"city",name:"Cerulean City",x:285,y:165,w:72,h:48},
+    {type:"city",name:"Vermilion City",x:285,y:470,w:72,h:48},
+    {type:"city",name:"Lavender Town",x:470,y:280,w:68,h:42},
+    {type:"city",name:"Celadon City",x:360,y:280,w:78,h:48},
+    {type:"city",name:"Fuchsia City",x:285,y:590,w:72,h:48},
+    {type:"city",name:"Saffron City",x:360,y:375,w:78,h:48},
+    {type:"city",name:"Cinnabar Island",x:90,y:710,w:72,h:42},
+    {type:"city",name:"One Island",x:600,y:650,w:65,h:40},
+    {type:"city",name:"Two Island",x:680,y:580,w:65,h:40},
+    {type:"city",name:"Three Island",x:720,y:650,w:65,h:40}
+  ]
+};
+
+const KANTO_CENTERS = {
+  "Route 1":[121,587],
+  "Route 2":[121,402],
+  "Route 3":[222,299],
+  "Route 4":[222,184],
+  "Route 5":[321,251],
+  "Route 6":[321,442],
+  "Route 7":[325,394],
+  "Route 8":[427,394],
+  "Route 9":[412,239],
+  "Route 10":[486,247],
+  "Route 11":[412,489],
+  "Route 12":[486,412],
+  "Route 13":[410,579],
+  "Route 14":[386,527],
+  "Route 15":[225,609],
+  "Route 16":[212,394],
+  "Route 17":[196,527],
+  "Route 18":[196,609],
+  "Route 19":[321,675],
+  "Route 20":[187,682],
+  "Route 21":[121,677],
+  "Route 22":[55,489],
+  "Route 23":[121,225],
+  "Route 24":[321,135],
+  "Route 25":[420,101],
+  "Viridian Forest":[121,401],
+  "Mt. Moon":[192,252],
+  "Rock Tunnel":[486,255],
+  "Pokemon Tower":[492,256],
+  "Silph Co.":[390,399],
+  "Safari Zone":[207,522],
+  "Seafoam Islands":[200,731],
+  "Pokemon Mansion":[117,687],
+  "Power Plant":[537,239],
+  "Victory Road":[56,260],
+  "Cerulean Cave":[277,140],
+  "Diglett Cave":[196,449],
+  "Pallet Town":[121,641],
+  "Viridian City":[124,494],
+  "Pewter City":[124,304],
+  "Cerulean City":[321,189],
+  "Vermilion City":[321,494],
+  "Lavender Town":[504,301],
+  "Celadon City":[399,304],
+  "Fuchsia City":[321,614],
+  "Saffron City":[399,399],
+  "Cinnabar Island":[126,731],
+  "One Island":[632,670],
+  "Two Island":[712,600],
+  "Three Island":[752,670]
+};
+
+const KANTO_PATHS = [
+  ["Pallet Town","Route 1",null,null],
+  ["Route 1","Viridian City",null,null],
+  ["Viridian City","Route 2",null,null],
+  ["Route 2","Viridian Forest",null,null],
+  ["Viridian Forest","Route 2",null,null],
+  ["Route 2","Pewter City",null,null],
+  ["Pewter City","Route 3",null,null],
+  ["Route 3","Mt. Moon",null,null],
+  ["Mt. Moon","Route 4",null,null],
+  ["Route 4","Cerulean City",null,null],
+  ["Cerulean City","Route 24",null,null],
+  ["Route 24","Route 25",null,null],
+  ["Cerulean City","Route 5",null,null],
+  ["Route 5","Saffron City","story","Sleepy Guard"],
+  ["Saffron City","Route 6",null,null],
+  ["Route 6","Vermilion City",null,null],
+  ["Cerulean City","Route 9",null,null],
+  ["Route 9","Route 10",null,null],
+  ["Route 10","Rock Tunnel",null,null],
+  ["Rock Tunnel","Lavender Town",null,null],
+  ["Lavender Town","Route 8",null,null],
+  ["Route 8","Saffron City","story","Sleepy Guard"],
+  ["Lavender Town","Route 12",null,null],
+  ["Route 12","Fuchsia City",null,null],
+  ["Vermilion City","Route 11",null,null],
+  ["Route 11","Lavender Town",null,null],
+  ["Saffron City","Route 7",null,null],
+  ["Route 7","Celadon City",null,null],
+  ["Celadon City","Route 16",null,null],
+  ["Route 16","Route 17",null,null],
+  ["Route 17","Route 18",null,null],
+  ["Route 18","Fuchsia City",null,null],
+  ["Fuchsia City","Route 15",null,null],
+  ["Route 15","Celadon City",null,null],
+  ["Fuchsia City","Safari Zone","item","Safari Pass"],
+  ["Fuchsia City","Route 19","hm","Surf"],
+  ["Route 19","Route 20","hm","Surf"],
+  ["Route 20","Seafoam Islands","hm","Surf"],
+  ["Seafoam Islands","Cinnabar Island","hm","Surf"],
+  ["Cinnabar Island","Route 21","hm","Surf"],
+  ["Route 21","Pallet Town","hm","Surf"],
+  ["Pallet Town","Route 22",null,null],
+  ["Route 22","Viridian City",null,null],
+  ["Viridian City","Route 23","badge","All 8 Badges"],
+  ["Route 23","Victory Road","badge","All 8 Badges"],
+  ["Cerulean Cave","Cerulean City","story","Defeat Elite 4"],
+  ["Silph Co.","Saffron City","story","Team Rocket"],
+  ["Pokemon Tower","Lavender Town","story","Silph Scope"],
+  ["Power Plant","Route 10",null,null],
+  ["Diglett Cave","Route 2",null,null],
+  ["One Island","Cinnabar Island","hm","Surf"],
+  ["Two Island","One Island","hm","Surf"],
+  ["Three Island","One Island","hm","Surf"]
+];
+
+const KANTO_ENCOUNTERS = {
+  "Route 1": [
+    {
+      "name": "Pidgey",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Rattata",
+      "type": "normal",
+      "rarity": "common"
+    }
+  ],
+  "Route 2": [
+    {
+      "name": "Pidgey",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Rattata",
+      "type": "normal",
+      "rarity": "common"
+    },
+    {
+      "name": "Caterpie",
+      "type": "bug",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Weedle",
+      "type": "bug",
+      "rarity": "uncommon"
+    }
+  ],
+  "Route 3": [
+    {
+      "name": "Pidgey",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Jigglypuff",
+      "type": "normal",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Mankey",
+      "type": "fighting",
+      "rarity": "common"
+    },
+    {
+      "name": "Spearow",
+      "type": "flying",
+      "rarity": "common"
+    }
+  ],
+  "Route 4": [
+    {
+      "name": "Spearow",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Rattata",
+      "type": "normal",
+      "rarity": "common"
+    },
+    {
+      "name": "Ekans",
+      "type": "poison",
+      "rarity": "uncommon"
+    }
+  ],
+  "Route 9": [
+    {
+      "name": "Rattata",
+      "type": "normal",
+      "rarity": "common"
+    },
+    {
+      "name": "Spearow",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Ekans",
+      "type": "poison",
+      "rarity": "uncommon"
+    }
+  ],
+  "Route 24": [
+    {
+      "name": "Caterpie",
+      "type": "bug",
+      "rarity": "common"
+    },
+    {
+      "name": "Metapod",
+      "type": "bug",
+      "rarity": "common"
+    },
+    {
+      "name": "Abra",
+      "type": "psychic",
+      "rarity": "rare"
+    },
+    {
+      "name": "Oddish",
+      "type": "grass",
+      "rarity": "uncommon"
+    }
+  ],
+  "Route 25": [
+    {
+      "name": "Bellsprout",
+      "type": "grass",
+      "rarity": "common"
+    },
+    {
+      "name": "Abra",
+      "type": "psychic",
+      "rarity": "rare"
+    },
+    {
+      "name": "Oddish",
+      "type": "grass",
+      "rarity": "uncommon"
+    }
+  ],
+  "Viridian Forest": [
+    {
+      "name": "Caterpie",
+      "type": "bug",
+      "rarity": "common"
+    },
+    {
+      "name": "Metapod",
+      "type": "bug",
+      "rarity": "common"
+    },
+    {
+      "name": "Weedle",
+      "type": "bug",
+      "rarity": "common"
+    },
+    {
+      "name": "Kakuna",
+      "type": "bug",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Pikachu",
+      "type": "electric",
+      "rarity": "rare"
+    }
+  ],
+  "Mt. Moon": [
+    {
+      "name": "Zubat",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Geodude",
+      "type": "rock",
+      "rarity": "common"
+    },
+    {
+      "name": "Clefairy",
+      "type": "normal",
+      "rarity": "rare"
+    },
+    {
+      "name": "Paras",
+      "type": "bug",
+      "rarity": "uncommon"
+    }
+  ],
+  "Rock Tunnel": [
+    {
+      "name": "Zubat",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Geodude",
+      "type": "rock",
+      "rarity": "common"
+    },
+    {
+      "name": "Onix",
+      "type": "rock",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Machop",
+      "type": "fighting",
+      "rarity": "uncommon"
+    }
+  ],
+  "Safari Zone": [
+    {
+      "name": "Nidoran\u2640",
+      "type": "poison",
+      "rarity": "common"
+    },
+    {
+      "name": "Nidoran\u2642",
+      "type": "poison",
+      "rarity": "common"
+    },
+    {
+      "name": "Scyther",
+      "type": "bug",
+      "rarity": "rare"
+    },
+    {
+      "name": "Pinsir",
+      "type": "bug",
+      "rarity": "rare"
+    },
+    {
+      "name": "Chansey",
+      "type": "normal",
+      "rarity": "rare"
+    },
+    {
+      "name": "Kangaskhan",
+      "type": "normal",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Tauros",
+      "type": "normal",
+      "rarity": "uncommon"
+    }
+  ],
+  "Seafoam Islands": [
+    {
+      "name": "Zubat",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Seel",
+      "type": "water",
+      "rarity": "common"
+    },
+    {
+      "name": "Dewgong",
+      "type": "water",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Articuno",
+      "type": "ice",
+      "rarity": "rare"
+    }
+  ],
+  "Pokemon Tower": [
+    {
+      "name": "Gastly",
+      "type": "ghost",
+      "rarity": "common"
+    },
+    {
+      "name": "Haunter",
+      "type": "ghost",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Cubone",
+      "type": "ground",
+      "rarity": "uncommon"
+    }
+  ],
+  "Power Plant": [
+    {
+      "name": "Voltorb",
+      "type": "electric",
+      "rarity": "common"
+    },
+    {
+      "name": "Magnemite",
+      "type": "electric",
+      "rarity": "common"
+    },
+    {
+      "name": "Electabuzz",
+      "type": "electric",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Zapdos",
+      "type": "electric",
+      "rarity": "rare"
+    }
+  ],
+  "Cerulean Cave": [
+    {
+      "name": "Golbat",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Parasect",
+      "type": "bug",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Ditto",
+      "type": "normal",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Mewtwo",
+      "type": "psychic",
+      "rarity": "rare"
+    }
+  ],
+  "Victory Road": [
+    {
+      "name": "Zubat",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Geodude",
+      "type": "rock",
+      "rarity": "common"
+    },
+    {
+      "name": "Graveler",
+      "type": "rock",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Venomoth",
+      "type": "bug",
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Machoke",
+      "type": "fighting",
+      "rarity": "uncommon"
+    }
+  ],
+  "Route 23": [
+    {
+      "name": "Ekans",
+      "type": "poison",
+      "rarity": "common"
+    },
+    {
+      "name": "Fearow",
+      "type": "flying",
+      "rarity": "common"
+    },
+    {
+      "name": "Ditto",
+      "type": "normal",
+      "rarity": "uncommon"
+    }
+  ]
+};
+
+const KANTO_GYMS = [
+  {name:"Pewter Gym",city:"Pewter City",badge:"Boulder Badge",leader:"Brock",type:"rock",x:90,y:280},
+  {name:"Cerulean Gym",city:"Cerulean City",badge:"Cascade Badge",leader:"Misty",type:"water",x:285,y:165},
+  {name:"Vermilion Gym",city:"Vermilion City",badge:"Thunder Badge",leader:"Lt. Surge",type:"electric",x:285,y:470},
+  {name:"Celadon Gym",city:"Celadon City",badge:"Rainbow Badge",leader:"Erika",type:"grass",x:360,y:280},
+  {name:"Fuchsia Gym",city:"Fuchsia City",badge:"Soul Badge",leader:"Koga",type:"poison",x:285,y:590},
+  {name:"Saffron Gym",city:"Saffron City",badge:"Marsh Badge",leader:"Sabrina",type:"psychic",x:360,y:375},
+  {name:"Cinnabar Gym",city:"Cinnabar Island",badge:"Volcano Badge",leader:"Blaine",type:"fire",x:90,y:710},
+  {name:"Viridian Gym",city:"Viridian City",badge:"Earth Badge",leader:"Giovanni",type:"ground",x:90,y:470}
+];
 
 function saveTeam() {
   try {
