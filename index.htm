@@ -3096,7 +3096,8 @@ function buildPathBadges() {
     if (!a || !b) return;
     const st = PATH_STYLES[reqType];
     const mx = (a[0]+b[0])/2, my = (a[1]+b[1])/2;
-    const bw = reqLabel.length * 6 + 20;
+    const tagLabel = (WIKI_DATA[reqLabel]&&WIKI_DATA[reqLabel].tag)||reqType.toUpperCase();
+    const bw = tagLabel.length * 6.5 + 18;
     const bh = 17;
     const safe_frm = frm.replace(/'/g,'&#39;');
     const safe_to  = to.replace(/'/g,'&#39;');
@@ -3108,7 +3109,7 @@ function buildPathBadges() {
         data-req="${reqType}" data-lbl="${safe_lbl}"/>
       <text x="${mx}" y="${my+5}" text-anchor="middle"
         fill="${st.stroke}" font-family="monospace" font-size="8" font-weight="bold"
-        letter-spacing="0.8" pointer-events="none">${reqLabel.toUpperCase()}</text>`;
+        letter-spacing="0.8" pointer-events="none">${(WIKI_DATA[reqLabel]&&WIKI_DATA[reqLabel].tag)||reqType.toUpperCase()}</text>`;
   });
   out += '</g>';
   return out;
@@ -3129,30 +3130,32 @@ function showPathInfo(frm, to, reqType, reqLabel) {
   frm = (frm||'').replace(/&#39;/g,"'");
   to  = (to||'').replace(/&#39;/g,"'");
   reqLabel = (reqLabel||'').replace(/&#39;/g,"'");
-  const TYPE_C = {hm:'#4a9eff', badge:'#ffd700', item:'#ff9900', story:'#cc44ff'};
+  const TYPE_C    = {hm:'#4a9eff', badge:'#ffd700', item:'#ff9900', story:'#cc44ff'};
   const TYPE_ICON = {hm:'🌊', badge:'🏅', item:'🎒', story:'🔒'};
-  const TYPE_TAG  = {hm:'HM MOVE', badge:'BADGE', item:'KEY ITEM', story:'STORY'};
-  const col  = TYPE_C[reqType]   || '#888';
-  const icon = TYPE_ICON[reqType]|| '🔒';
-  const tag  = TYPE_TAG[reqType] || 'LOCKED';
+  const col  = TYPE_C[reqType] || '#888';
+  const icon = TYPE_ICON[reqType] || '🔒';
+  const wiki = WIKI_DATA[reqLabel];
   const panel = document.getElementById("map-info");
-  document.getElementById("map-info-name").textContent = reqLabel;
-  document.getElementById("map-info-type").textContent = frm + " → " + to;
-  document.getElementById("map-info-type").style.color = '#6a8a6a';
+
+  // Header: show the full name (title from wiki, or reqLabel)
+  document.getElementById("map-info-name").textContent = wiki ? wiki.title : reqLabel;
+  // Subheader: route direction
+  document.getElementById("map-info-type").textContent = frm + "  →  " + to;
+  document.getElementById("map-info-type").style.color = '#5a7a64';
+
   document.getElementById("map-info-encounters").innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px;padding:8px 0">
-      <div style="font-size:36px">${icon}</div>
-      <div>
-        <div style="background:${col}22;border:1px solid ${col};border-radius:16px;
-          display:inline-block;padding:2px 10px;font-family:monospace;font-size:9px;
-          font-weight:bold;color:${col};letter-spacing:1px;margin-bottom:6px">${tag}</div>
-        <div style="font-size:12px;color:#7a9a84">
-          ${({hm:'Need this HM + badge to use outside battle.',
-             badge:'Earn all required gym badges.',
-             item:'Find this key item first.',
-             story:'Unlocks during the story.'})[reqType]||''}
-        </div>
-      </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;margin-top:2px">
+      <span style="font-size:22px">${icon}</span>
+      <span style="background:${col}22;border:1px solid ${col};border-radius:16px;
+        padding:2px 12px;font-family:monospace;font-size:9px;font-weight:bold;
+        color:${col};letter-spacing:1.5px">${wiki ? wiki.tag : reqType.toUpperCase()}</span>
+    </div>
+    <div style="font-size:13px;color:#b0ccb8;line-height:1.7;padding-bottom:6px;
+      border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px">
+      ${wiki ? wiki.how : 'Required to pass through this route.'}
+    </div>
+    <div style="font-size:9px;color:#3a5a44;font-family:monospace;letter-spacing:1px">
+      ${frm}  ──▶  ${to}
     </div>`;
   panel.classList.add("open");
 }
@@ -3599,6 +3602,7 @@ function renderBadgeOverlay() {
   overlay.innerHTML = html;
 }
 
+const WIKI_DATA = {"Surf":{"tag":"HM","title":"HM03 Surf","how":"Teach Surf to a party Pok\u00e9mon. Obtained from Wally's father in Petalburg City after earning the Balance Badge. Requires the Balance Badge to use outside battle."},"Waterfall":{"tag":"HM","title":"HM07 Waterfall","how":"Teach Waterfall to a party Pok\u00e9mon. Found in the Cave of Origin after the Kyogre/Groudon encounter. Requires the Rain Badge to use outside battle."},"Dive":{"tag":"HM","title":"HM08 Dive","how":"Teach Dive to a party Pok\u00e9mon. Steven Stone gives it to you on Route 128. Requires the Mind Badge to use outside battle."},"Rock Smash":{"tag":"HM","title":"HM06 Rock Smash","how":"Teach Rock Smash to a party Pok\u00e9mon. Obtained from a man on Route 110. Requires the Dynamo Badge to use outside battle."},"Strength":{"tag":"HM","title":"HM04 Strength","how":"Teach Strength to a party Pok\u00e9mon. Obtained inside the Safari Zone. Requires the Heat Badge to use outside battle."},"Acro Bike":{"tag":"HM","title":"Acro Bike","how":"Obtain the Acro Bike from Rydel's Cycles in Mauville City. Lets you hop across stepping stones and ride on muddy slopes. You need it to access the upper part of Route 111."},"Devon Scope":{"tag":"ITEM","title":"Devon Scope","how":"Given to you by Steven Stone on Route 120 after defeating Winona at Fortree Gym. Use it to reveal the invisible Kecleon blocking the bridge."},"Go-Goggles":{"tag":"ITEM","title":"Go-Goggles","how":"Given to you by your rival in Lavaridge Town after you beat Flannery. Lets you enter the sandstorm on Route 111 to reach the desert and Mirage Tower."},"Dynamo Badge":{"tag":"ITEM","title":"Dynamo Badge","how":"Earn the Dynamo Badge by defeating Wattson at Mauville Gym. Brings New Mauville's generator back online so you can enter the building."},"All 8 Badges":{"tag":"BADGE","title":"All 8 Gym Badges","how":"Collect all eight Hoenn gym badges from Roxanne, Brawly, Wattson, Flannery, Norman, Winona, Tate & Liza, and Wallace. The gatekeepers at the foot of Victory Road will only stand aside once you have all eight."},"Regi Puzzle":{"tag":"STORY","title":"Regi Puzzle","how":"Read the ancient inscriptions in the Sealed Chamber (dive underwater on Route 134, then use Surf inside to find the braille). Bring a Relicanth (front) and Wailord (back) to unlock the three Regi caves: Desert Ruins, Island Cave, and Ancient Tomb."},"Team Magma/Aqua":{"tag":"STORY","title":"Defeat Team Magma/Aqua","how":"Clear the Seafloor Cavern by stopping Archie/Maxie from awakening Kyogre/Groudon. This event triggers the story path to Sootopolis City via the underwater cave entrance."},"Unlock Sootopolis":{"tag":"STORY","title":"Unlock Sootopolis City","how":"After calming Kyogre/Groudon at the Cave of Origin, Wallace opens the Sootopolis Gym. Before this event the gym remains locked even if you're inside the city."},"Safari Pass":{"tag":"ITEM","title":"Safari Zone Pass","how":"Pay the 500 Pok\u00e9 entrance fee at the Safari Zone gate in Fuchsia City. Lets you explore all areas of the Safari Zone with special Safari Balls. The Warden's Gold Teeth and HM Strength are found inside."},"Sleepy Guard":{"tag":"STORY","title":"Sleepy Guard","how":"The guards at the Saffron City gates are thirsty and blocking the road. Bring them a Fresh Water, Soda Pop, or Lemonade (purchased from the Celadon Dept. Store vending machines) to get them to stand aside."},"Silph Scope":{"tag":"STORY","title":"Silph Scope","how":"Obtain the Silph Scope by defeating Team Rocket's boss Giovanni in the Rocket Game Corner hideout under Celadon City. Without it the ghost on the top floor of Pok\u00e9mon Tower in Lavender Town can't be identified \u2014 it's actually a Marowak."},"Team Rocket":{"tag":"STORY","title":"Infiltrate Silph Co.","how":"Team Rocket has taken over Silph Co. in Saffron City. Fight your way to the 11th floor, defeat Rival and Giovanni, and free the president. Giovanni gives you the Master Ball as thanks. Clears the blockade and opens free travel through Saffron."},"Defeat Elite 4":{"tag":"STORY","title":"Defeat the Elite Four","how":"Beat the Elite Four and become Pok\u00e9mon Champion at Indigo Plateau. Cerulean Cave opens afterwards \u2014 Mewtwo waits at the deepest level. This is the only post-game legendary encounter accessible without trading."},"All 8 Badges (Kanto)":{"tag":"BADGE","title":"All 8 Kanto Badges","how":"Collect all eight Kanto gym badges from Brock, Misty, Lt. Surge, Erika, Koga, Sabrina, Blaine, and Giovanni. The gatekeepers on Route 22 only let you through to Victory Road once you hold all eight."}};
 function saveTeam() {
   try {
     const key = 'team_' + (currentGame ? currentGame.id : 'emerald');
